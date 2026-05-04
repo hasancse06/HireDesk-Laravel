@@ -49,573 +49,421 @@ This makes the project useful for learning, client work, open-source collaborati
 ## 🧩 Current Phase
 
 ---
----
 
-## 📨 Phase 7 — Job Application System
+## 🧑‍💼 Phase 8 — Employer Application Review
 
-Phase 7 adds the complete job application workflow to HireDesk Laravel.
+Phase 8 improves the employer-side application review workflow.
 
-Applicants can now apply to published jobs with a cover letter, resume, expected salary, availability date, and portfolio URL. Employers can review applications submitted to their own jobs, update application statuses, and see real application counts. Admin users can view all applications across the platform.
+Employers can now see stronger application statistics on their dashboard, navigate from job posts to applications, open detailed applicant profiles, and quickly shortlist, select, or reject applicants. This phase also strengthens authorization by ensuring employers can only view and manage applications submitted to their own job posts.
 
 ---
 
 ## ✅ Completed Features
 
-- Job application database table
-- JobApplication model
-- Applicants can apply to published jobs
-- Cover letter submission
-- Resume upload support
-- Expected salary field
-- Availability date field
-- Portfolio URL field
-- Duplicate application prevention
-- Employers cannot apply to jobs
-- Employers can only view applications for their own jobs
-- Employers can update application status
-- Admin can view all applications
-- Applicant application history
-- Applicant application details page
-- Employer application list
-- Employer application details/review page
-- Employer applications by job page
-- Admin application list
-- Admin application details page
-- Real applications count connected to job posts
-- Resume storage through Laravel public disk
-- Application status badges
-- Sidebar links updated by role
+- Employer dashboard application statistics
+- Total jobs count
+- Published jobs count
+- Total applications count
+- Pending applications count
+- Selected applicants count
+- Rejected applicants count
+- Improved `My Jobs → Applications → Applicant Details` flow
+- Better employer applications by job page
+- Better employer applicant details page
+- Applicant name and email display
+- Applicant resume link
+- Applicant cover letter display
+- Applicant skills display
+- Applicant portfolio link display
+- Applicant GitHub link display
+- Applicant LinkedIn link display
+- Application status badge
+- Shortlist button
+- Select Applicant button
+- Reject Application button
+- Manual status update form
+- Strong employer authorization checks
 
 ---
 
-## 🧾 Application Fields
+## 🎯 Purpose of Phase 8
 
-Each job application includes the following fields:
+The goal of this phase is to make the employer review experience more practical and realistic.
 
-| Field | Description |
-|---|---|
-| `job_post_id` | The job post being applied to |
-| `applicant_id` | The applicant user who submitted the application |
-| `cover_letter` | Applicant cover letter |
-| `resume_path` | Uploaded resume file path |
-| `expected_salary` | Applicant expected salary |
-| `availability_date` | Date when applicant can start |
-| `portfolio_url` | Applicant portfolio link |
-| `status` | Current application status |
-| `reviewed_at` | Date/time when employer reviewed the application |
-| `reviewed_by` | Employer/admin user who reviewed the application |
-| `created_at` | Application submission date |
-| `updated_at` | Last update date |
-| `deleted_at` | Soft delete timestamp |
-
----
-
-## 🗄️ Database Table Added
-
-Phase 7 adds the following table:
+Employers should be able to:
 
 ```txt
-job_applications
+Open dashboard
+See application stats
+Go to My Jobs
+Click application count
+View applicants for a job
+Open applicant details
+Review resume, cover letter, skills, and portfolio
+Shortlist, select, or reject the applicant
 ```
 
-### `job_applications` Table Structure
-
-```txt
-id
-job_post_id
-applicant_id
-cover_letter
-resume_path
-expected_salary
-availability_date
-portfolio_url
-status
-reviewed_at
-reviewed_by
-created_at
-updated_at
-deleted_at
-```
-
-### Unique Application Rule
-
-Each applicant can apply to the same job only once.
-
-```txt
-unique(job_post_id, applicant_id)
-```
-
-This prevents duplicate applications at the database level.
+This phase demonstrates real Laravel authorization and business workflow handling.
 
 ---
 
-## 🏷️ Application Statuses
+## 📊 Employer Dashboard Stats
 
-The application workflow supports four statuses:
+The employer dashboard now shows:
 
-| Status | Description |
-|---|---|
-| `pending` | Application has been submitted but not reviewed yet |
-| `shortlisted` | Employer has shortlisted the applicant |
-| `selected` | Employer has selected the applicant |
-| `rejected` | Employer has rejected the application |
-
----
-
-## 🔗 Model Relationships
-
-### JobPost Model
-
-Each job post can have many applications.
-
-```php
-public function applications(): HasMany
-{
-    return $this->hasMany(JobApplication::class);
-}
+```txt
+Total Jobs
+Published Jobs
+Total Applications
+Pending Applications
+Selected Applicants
+Rejected Applicants
 ```
 
-The job application count now uses real application data.
+These stats are calculated only from the logged-in employer’s own jobs.
+
+Example logic:
 
 ```php
-public function applicationsCount(): int
-{
-    return $this->applications()->count();
-}
+$applicationQuery = JobApplication::whereHas('jobPost', function ($query) use ($user) {
+    $query->where('user_id', $user->id);
+});
 ```
 
-The model also checks whether a user has already applied.
+Then each stat is counted from the employer-owned application query:
 
 ```php
-public function hasApplied(?User $user = null): bool
-{
-    $user = $user ?: auth()->user();
-
-    if (! $user) {
-        return false;
-    }
-
-    return $this->applications()
-        ->where('applicant_id', $user->id)
-        ->exists();
-}
-```
-
-### User Model
-
-Applicants can have many job applications.
-
-```php
-public function jobApplications(): HasMany
-{
-    return $this->hasMany(JobApplication::class, 'applicant_id');
-}
-```
-
-Users can also be reviewers of applications.
-
-```php
-public function reviewedApplications(): HasMany
-{
-    return $this->hasMany(JobApplication::class, 'reviewed_by');
-}
-```
-
-### JobApplication Model
-
-Each application belongs to a job post.
-
-```php
-public function jobPost(): BelongsTo
-{
-    return $this->belongsTo(JobPost::class);
-}
-```
-
-Each application belongs to an applicant.
-
-```php
-public function applicant(): BelongsTo
-{
-    return $this->belongsTo(User::class, 'applicant_id');
-}
-```
-
-Each application may have a reviewer.
-
-```php
-public function reviewer(): BelongsTo
-{
-    return $this->belongsTo(User::class, 'reviewed_by');
-}
+'applications' => (clone $applicationQuery)->count(),
+'pending_applications' => (clone $applicationQuery)->where('status', 'pending')->count(),
+'selected_applications' => (clone $applicationQuery)->where('status', 'selected')->count(),
+'rejected_applications' => (clone $applicationQuery)->where('status', 'rejected')->count(),
 ```
 
 ---
 
-## 🧠 JobApplication Model Helpers
+## 🧭 Employer Review Flow
 
-The `JobApplication` model includes helper methods for UI display.
+Phase 8 improves the employer review journey.
 
-### Status Badge
+### Main Flow
 
-```php
-public function statusBadgeClass(): string
-{
-    return match ($this->status) {
-        'shortlisted' => 'info',
-        'selected' => 'success',
-        'rejected' => 'danger',
-        default => 'warning',
-    };
-}
+```txt
+/employer/jobs
+        ↓
+Click application count
+        ↓
+/employer/jobs/{job}/applications
+        ↓
+Click Applicant Details
+        ↓
+/employer/applications/{application}
+        ↓
+Shortlist / Select / Reject
 ```
 
-### Status Label
-
-```php
-public function statusLabel(): string
-{
-    return ucfirst($this->status);
-}
-```
-
-### Resume URL
-
-```php
-public function resumeUrl(): ?string
-{
-    if (! $this->resume_path) {
-        return null;
-    }
-
-    return asset('storage/' . $this->resume_path);
-}
-```
+This creates a clear, real-world hiring workflow.
 
 ---
 
-## 🧭 Application Routes
+## 🧾 Employer Applications by Job
 
-Phase 7 adds applicant, employer, and admin application routes.
-
-### Applicant Routes
-
-| Method | URL | Name | Description |
-|---|---|---|---|
-| GET | `/applicant/applications` | `applicant.applications.index` | Applicant application history |
-| GET | `/applicant/applications/{application}` | `applicant.applications.show` | Applicant application details |
-| GET | `/applicant/jobs/{job:slug}/apply` | `applicant.jobs.apply.create` | Show job application form |
-| POST | `/applicant/jobs/{job:slug}/apply` | `applicant.jobs.apply.store` | Submit job application |
-
-### Employer Routes
-
-| Method | URL | Name | Description |
-|---|---|---|---|
-| GET | `/employer/applications` | `employer.applications.index` | List applications for employer’s jobs |
-| GET | `/employer/applications/{application}` | `employer.applications.show` | Review application details |
-| PATCH | `/employer/applications/{application}/status` | `employer.applications.status` | Update application status |
-| GET | `/employer/jobs/{job}/applications` | `employer.jobs.applications` | List applications for a specific job |
-
-### Admin Routes
-
-| Method | URL | Name | Description |
-|---|---|---|---|
-| GET | `/admin/applications` | `admin.applications.index` | View all platform applications |
-| GET | `/admin/applications/{application}` | `admin.applications.show` | View application details as admin |
-
----
-
-## 🧱 Role-Based Access Rules
-
-Phase 7 enforces application rules based on user roles.
-
-### Applicant Rules
-
-```txt
-Applicants can apply to published jobs.
-Applicants can view their own applications.
-Applicants cannot apply twice to the same job.
-Applicants cannot apply to expired jobs.
-Applicants cannot access employer application review pages.
-```
-
-### Employer Rules
-
-```txt
-Employers cannot apply to jobs.
-Employers can only view applications submitted to their own jobs.
-Employers can review application details.
-Employers can update application status.
-Employers cannot view applications for jobs owned by other employers.
-```
-
-### Admin Rules
-
-```txt
-Admins can view all applications across the platform.
-Admins can view application details.
-Admins do not submit job applications by default.
-```
-
----
-
-## 📎 Resume Upload
-
-Applicants can upload a resume when applying to a job.
-
-Supported formats:
-
-```txt
-PDF
-DOC
-DOCX
-```
-
-Maximum file size:
-
-```txt
-5MB
-```
-
-Resume files are stored on Laravel’s public disk:
-
-```txt
-storage/app/public/resumes
-```
-
-Public URL format:
-
-```txt
-/storage/resumes/filename.pdf
-```
-
-Run this command to make uploaded resumes publicly accessible:
-
-```bash
-php artisan storage:link
-```
-
----
-
-## 🧑‍💼 Applicant Workflow
-
-Applicant flow:
-
-```txt
-Browse jobs
-View job details
-Click Apply Now
-Submit cover letter and application details
-Upload optional resume
-Track application status from dashboard
-View submitted application details
-```
-
-Applicant application dashboard:
-
-```txt
-/applicant/applications
-```
-
-Applicant users see:
-
-```txt
-Job title
-Company name
-Application status
-Applied date
-View details button
-```
-
----
-
-## 🏢 Employer Workflow
-
-Employer flow:
-
-```txt
-Create/publish job
-View application count from My Jobs
-Open applications for a specific job
-Review applicant details
-View cover letter
-View resume
-View applicant profile summary
-Update application status
-```
-
-Employer application dashboard:
-
-```txt
-/employer/applications
-```
-
-Employer can filter applications by status:
-
-```txt
-pending
-shortlisted
-selected
-rejected
-```
-
-Employers can also view applications for a specific job:
+The page:
 
 ```txt
 /employer/jobs/{job}/applications
 ```
 
----
+shows applications for a specific job post.
 
-## 🛡️ Admin Workflow
+It includes:
 
-Admin users can view all job applications across the platform.
+- Job title
+- Company name
+- Workplace type
+- Job type
+- Salary range
+- Application deadline
+- Total applications count
+- Applicant name
+- Applicant email
+- Applicant skills
+- Application status
+- Expected salary
+- Applied date
+- Applicant Details button
 
-Admin application page:
-
-```txt
-/admin/applications
-```
-
-Admin users can see:
-
-```txt
-Applicant
-Job
-Employer
-Application status
-Applied date
-Application details
-Reviewer information
-```
+This page is only accessible by the employer who owns the job.
 
 ---
 
-## 🔘 Apply Button Behavior
+## 👤 Employer Applicant Details Page
 
-The public job details page now supports role-aware apply behavior.
-
-### Guest User
+The page:
 
 ```txt
-Shows Login to Apply button
+/employer/applications/{application}
 ```
 
-### Applicant User
+shows a detailed review screen for an applicant.
+
+It includes:
+
+| Section | Details |
+|---|---|
+| Applicant Information | Name, email, headline |
+| Professional Profile | Experience level, location, skills, bio |
+| Application Details | Expected salary, availability date |
+| Links | Resume, portfolio, GitHub, LinkedIn |
+| Cover Letter | Full applicant cover letter |
+| Status Panel | Current status, applied date, reviewed date |
+| Quick Actions | Shortlist, Select, Reject |
+| Job Details | Job title, company, type, workplace, public job link |
+
+---
+
+## 🏷️ Application Review Actions
+
+Employers can update application status using quick action buttons.
+
+### Shortlist Applicant
 
 ```txt
-Shows Apply Now button if not applied
-Shows Already Applied button if already applied
+PATCH /employer/applications/{application}/shortlist
 ```
 
-### Employer/Admin User
+Route name:
 
 ```txt
-Does not show applicant application form
-Shows dashboard-related action instead
+employer.applications.shortlist
+```
+
+### Select Applicant
+
+```txt
+PATCH /employer/applications/{application}/select
+```
+
+Route name:
+
+```txt
+employer.applications.select
+```
+
+### Reject Application
+
+```txt
+PATCH /employer/applications/{application}/reject
+```
+
+Route name:
+
+```txt
+employer.applications.reject
+```
+
+### Manual Status Update
+
+```txt
+PATCH /employer/applications/{application}/status
+```
+
+Route name:
+
+```txt
+employer.applications.status
 ```
 
 ---
 
-## 📊 Dashboard Updates
+## 🏷️ Application Statuses
 
-Phase 7 updates dashboard statistics with application counts.
+Phase 8 continues using the existing application statuses:
 
-### Admin Dashboard
+| Status | Meaning |
+|---|---|
+| `pending` | Application submitted but not reviewed yet |
+| `shortlisted` | Employer marked the applicant as a possible fit |
+| `selected` | Employer selected the applicant |
+| `rejected` | Employer rejected the application |
 
-```txt
-Total jobs
-Published jobs
-Draft jobs
-Closed jobs
-Total applications
+---
+
+## 🔐 Employer Authorization
+
+Phase 8 strengthens employer authorization.
+
+Employers can only view or update applications for jobs they own.
+
+Authorization logic:
+
+```php
+private function authorizeEmployerJob(JobPost $job): void
+{
+    abort_unless($job->user_id === auth()->id(), 403);
+}
 ```
 
-### Employer Dashboard
+This check is applied before:
 
 ```txt
-My total jobs
-My published jobs
-My draft jobs
-My closed jobs
-Applications received
+Viewing applications by job
+Viewing applicant details
+Updating application status
+Shortlisting applicant
+Selecting applicant
+Rejecting applicant
 ```
 
-### Applicant Dashboard
+Expected behavior:
 
 ```txt
-Published jobs available
-My applications
+Employer can manage applications for their own jobs.
+Employer cannot access applications from another employer’s jobs.
+Unauthorized access returns 403 Forbidden.
 ```
 
 ---
 
-## 📁 Files Added in Phase 7
+## 🧠 Employer Application Controller Updates
 
-### Model
+The employer application controller was improved with quick status actions.
 
-```txt
-app/Models/JobApplication.php
-```
-
-### Controllers
+Controller:
 
 ```txt
-app/Http/Controllers/Applicant/JobApplicationController.php
 app/Http/Controllers/Employer/ApplicationController.php
-app/Http/Controllers/Admin/ApplicationController.php
 ```
 
-### Views
+### Quick Action Methods
+
+```php
+public function shortlist(JobApplication $application): RedirectResponse
+{
+    return $this->changeStatus($application, 'shortlisted', 'Applicant shortlisted successfully.');
+}
+
+public function select(JobApplication $application): RedirectResponse
+{
+    return $this->changeStatus($application, 'selected', 'Applicant selected successfully.');
+}
+
+public function reject(JobApplication $application): RedirectResponse
+{
+    return $this->changeStatus($application, 'rejected', 'Application rejected successfully.');
+}
+```
+
+### Shared Status Change Method
+
+```php
+private function changeStatus(JobApplication $application, string $status, string $message): RedirectResponse
+{
+    $application->load('jobPost');
+
+    $this->authorizeEmployerJob($application->jobPost);
+
+    abort_unless(
+        in_array($status, ['pending', 'shortlisted', 'selected', 'rejected'], true),
+        422
+    );
+
+    $application->update([
+        'status' => $status,
+        'reviewed_at' => now(),
+        'reviewed_by' => auth()->id(),
+    ]);
+
+    return redirect()
+        ->route('employer.applications.show', $application)
+        ->with('success', $message);
+}
+```
+
+---
+
+## 🧭 Routes Added in Phase 8
+
+Phase 8 adds quick employer application review routes.
+
+| Method | URL | Name | Description |
+|---|---|---|---|
+| PATCH | `/employer/applications/{application}/shortlist` | `employer.applications.shortlist` | Shortlist an applicant |
+| PATCH | `/employer/applications/{application}/select` | `employer.applications.select` | Select an applicant |
+| PATCH | `/employer/applications/{application}/reject` | `employer.applications.reject` | Reject an application |
+
+Existing employer application routes:
+
+| Method | URL | Name | Description |
+|---|---|---|---|
+| GET | `/employer/applications` | `employer.applications.index` | List applications for employer’s jobs |
+| GET | `/employer/applications/{application}` | `employer.applications.show` | View applicant details |
+| PATCH | `/employer/applications/{application}/status` | `employer.applications.status` | Manual status update |
+| GET | `/employer/jobs/{job}/applications` | `employer.jobs.applications` | View applications for a specific job |
+
+---
+
+## 🧩 Dashboard Updates
+
+The dashboard view now includes employer-specific application review cards.
+
+For employer users, the dashboard shows:
 
 ```txt
-resources/views/applicant/applications/create.blade.php
-resources/views/applicant/applications/index.blade.php
-resources/views/applicant/applications/show.blade.php
+Pending Applications
+Selected Applicants
+Rejected Applicants
+```
 
+Each card links to filtered employer applications:
+
+```txt
+/employer/applications?status=pending
+/employer/applications?status=selected
+/employer/applications?status=rejected
+```
+
+---
+
+## 🧾 My Jobs Application Count
+
+The employer job list now makes the application count clickable.
+
+Location:
+
+```txt
+/employer/jobs
+```
+
+Application count button links to:
+
+```txt
+/employer/jobs/{job}/applications
+```
+
+This makes the review flow simple:
+
+```txt
+My Jobs → Applications → Applicant Details
+```
+
+---
+
+## 📁 Files Updated in Phase 8
+
+```txt
+app/Http/Controllers/DashboardController.php
+app/Http/Controllers/Employer/ApplicationController.php
+routes/web.php
+resources/views/dashboard/index.blade.php
+resources/views/employer/jobs/index.blade.php
 resources/views/employer/applications/index.blade.php
 resources/views/employer/applications/by-job.blade.php
 resources/views/employer/applications/show.blade.php
-
-resources/views/admin/applications/index.blade.php
-resources/views/admin/applications/show.blade.php
-```
-
-### Migration
-
-```txt
-database/migrations/xxxx_xx_xx_xxxxxx_create_job_applications_table.php
 ```
 
 ---
 
-## 📝 Files Updated in Phase 7
-
-```txt
-app/Models/JobPost.php
-app/Models/User.php
-app/Http/Controllers/DashboardController.php
-routes/web.php
-resources/views/jobs/show.blade.php
-resources/views/employer/jobs/index.blade.php
-resources/views/partials/sidebar.blade.php
-```
-
----
-
-## 🧪 Testing Phase 7
-
-Run migrations:
-
-```bash
-php artisan migrate
-```
-
-Create public storage link:
-
-```bash
-php artisan storage:link
-```
+## 🧪 Testing Phase 8
 
 Clear cache:
 
@@ -631,41 +479,23 @@ Check application routes:
 php artisan route:list | grep applications
 ```
 
+Expected employer routes:
+
+```txt
+GET|HEAD  employer/applications
+GET|HEAD  employer/applications/{application}
+PATCH     employer/applications/{application}/status
+PATCH     employer/applications/{application}/shortlist
+PATCH     employer/applications/{application}/select
+PATCH     employer/applications/{application}/reject
+GET|HEAD  employer/jobs/{job}/applications
+```
+
 ---
 
 ## ✅ Manual Testing Checklist
 
-### Applicant Test
-
-Login with:
-
-```txt
-Email: applicant@hiredesk.test
-Password: password
-```
-
-Test:
-
-```txt
-/jobs
-/jobs/{job-slug}
-/applicant/jobs/{job-slug}/apply
-/applicant/applications
-```
-
-Expected result:
-
-```txt
-Applicant can view published jobs.
-Applicant can apply to a job.
-Applicant can upload a resume.
-Applicant can submit cover letter, expected salary, availability date, and portfolio URL.
-Applicant is redirected to application history after applying.
-Applicant cannot apply twice to the same job.
-Applicant can view their own application details.
-```
-
-### Employer Test
+### Employer Dashboard Test
 
 Login with:
 
@@ -674,112 +504,111 @@ Email: employer@hiredesk.test
 Password: password
 ```
 
-Test:
+Open:
+
+```txt
+/dashboard
+```
+
+Expected result:
+
+```txt
+Employer sees total jobs.
+Employer sees published jobs.
+Employer sees total applications.
+Employer sees pending applications.
+Employer sees selected applicants.
+Employer sees rejected applicants.
+```
+
+---
+
+### Employer Review Flow Test
+
+Open:
 
 ```txt
 /employer/jobs
-/employer/applications
-/employer/jobs/{job}/applications
-/employer/applications/{application}
+```
+
+Click the application count button.
+
+Expected flow:
+
+```txt
+My Jobs
+→ Applications for selected job
+→ Applicant Details
+```
+
+On applicant details page, confirm these are visible:
+
+```txt
+Applicant name
+Applicant email
+Resume link
+Cover letter
+Skills
+Portfolio link
+GitHub link
+LinkedIn link
+Application status
+Shortlist button
+Select Applicant button
+Reject Application button
+Manual status update form
+```
+
+---
+
+### Status Action Test
+
+From the applicant details page, test:
+
+```txt
+Shortlist
+Select Applicant
+Reject Application
+Manual status update
 ```
 
 Expected result:
 
 ```txt
-Employer can see application count on job list.
-Employer can view applications submitted to their own jobs.
-Employer can review applicant details.
-Employer can view cover letter and resume.
-Employer can update application status.
-Employer cannot access applications for jobs owned by another employer.
-```
-
-### Admin Test
-
-Login with:
-
-```txt
-Email: admin@hiredesk.test
-Password: password
-```
-
-Test:
-
-```txt
-/admin/applications
-/admin/applications/{application}
-```
-
-Expected result:
-
-```txt
-Admin can view all applications.
-Admin can view full application details.
-Admin can see applicant, employer, job, reviewer, and status information.
+Application status updates correctly.
+reviewed_at is updated.
+reviewed_by is updated.
+Success message is shown.
+Employer stays on the applicant details page.
 ```
 
 ---
 
-## 🧰 Useful Commands
+### Authorization Test
 
-Create model and migration:
+Expected authorization behavior:
 
-```bash
-php artisan make:model JobApplication -m
-```
-
-Create controllers:
-
-```bash
-php artisan make:controller Applicant/JobApplicationController
-php artisan make:controller Employer/ApplicationController
-php artisan make:controller Admin/ApplicationController
-```
-
-Run migrations:
-
-```bash
-php artisan migrate
-```
-
-Create storage link:
-
-```bash
-php artisan storage:link
-```
-
-Clear cache:
-
-```bash
-php artisan optimize:clear
-php artisan route:clear
-php artisan view:clear
-```
-
-Check routes:
-
-```bash
-php artisan route:list | grep applications
+```txt
+Employer can access applications for their own jobs.
+Employer cannot access applications for another employer’s jobs.
+Unauthorized access returns 403 Forbidden.
 ```
 
 ---
 
-## ✅ Phase 7 Status
+## ✅ Phase 8 Status
 
-Phase 7 is completed with:
+Phase 8 is completed with:
 
-- Job application model
-- Application database table
-- Applicant application form
-- Resume upload
-- Duplicate application prevention
-- Applicant application history
-- Employer application review
-- Employer status update workflow
-- Admin application overview
-- Real application counts on job posts
-- Role-based application access
-- AdminLTE-compatible application UI
+- Employer dashboard review statistics
+- Improved employer job-to-application flow
+- Improved applications by job page
+- Improved applicant details page
+- Resume, cover letter, skills, portfolio, GitHub, and LinkedIn visibility
+- Quick shortlist/select/reject actions
+- Manual status update
+- Strong employer authorization
+- AdminLTE-compatible review UI
 
 ---
 

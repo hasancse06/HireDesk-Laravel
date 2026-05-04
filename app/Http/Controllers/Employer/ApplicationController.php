@@ -65,7 +65,46 @@ class ApplicationController extends Controller
             'reviewed_by' => auth()->id(),
         ]);
 
-        return back()->with('success', 'Application status updated successfully.');
+        return redirect()
+            ->route('employer.applications.show', $application)
+            ->with('success', 'Application status updated successfully.');
+    }
+
+    public function shortlist(JobApplication $application): RedirectResponse
+    {
+        return $this->changeStatus($application, 'shortlisted', 'Applicant shortlisted successfully.');
+    }
+
+    public function select(JobApplication $application): RedirectResponse
+    {
+        return $this->changeStatus($application, 'selected', 'Applicant selected successfully.');
+    }
+
+    public function reject(JobApplication $application): RedirectResponse
+    {
+        return $this->changeStatus($application, 'rejected', 'Application rejected successfully.');
+    }
+
+    private function changeStatus(JobApplication $application, string $status, string $message): RedirectResponse
+    {
+        $application->load('jobPost');
+
+        $this->authorizeEmployerJob($application->jobPost);
+
+        abort_unless(
+            in_array($status, ['pending', 'shortlisted', 'selected', 'rejected'], true),
+            422
+        );
+
+        $application->update([
+            'status' => $status,
+            'reviewed_at' => now(),
+            'reviewed_by' => auth()->id(),
+        ]);
+
+        return redirect()
+            ->route('employer.applications.show', $application)
+            ->with('success', $message);
     }
 
     private function authorizeEmployerJob(JobPost $job): void

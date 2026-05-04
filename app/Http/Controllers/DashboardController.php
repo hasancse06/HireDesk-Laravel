@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\JobPost;
+
 use App\Models\JobApplication;
+use App\Models\JobPost;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -22,6 +23,9 @@ class DashboardController extends Controller
                     'draft_jobs' => JobPost::where('status', 'draft')->count(),
                     'closed_jobs' => JobPost::where('status', 'closed')->count(),
                     'applications' => JobApplication::count(),
+                    'pending_applications' => JobApplication::where('status', 'pending')->count(),
+                    'selected_applications' => JobApplication::where('status', 'selected')->count(),
+                    'rejected_applications' => JobApplication::where('status', 'rejected')->count(),
                 ],
             ]);
         }
@@ -30,6 +34,10 @@ class DashboardController extends Controller
             $profile = $user->employerProfile()->firstOrCreate([
                 'user_id' => $user->id,
             ]);
+
+            $applicationQuery = JobApplication::whereHas('jobPost', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            });
 
             return view('dashboard.index', [
                 'dashboardType' => 'employer',
@@ -40,9 +48,10 @@ class DashboardController extends Controller
                     'published_jobs' => $user->jobPosts()->where('status', 'published')->count(),
                     'draft_jobs' => $user->jobPosts()->where('status', 'draft')->count(),
                     'closed_jobs' => $user->jobPosts()->where('status', 'closed')->count(),
-                    'applications' => JobApplication::whereHas('jobPost', function ($query) use ($user) {
-                        $query->where('user_id', $user->id);
-                    })->count(),
+                    'applications' => (clone $applicationQuery)->count(),
+                    'pending_applications' => (clone $applicationQuery)->where('status', 'pending')->count(),
+                    'selected_applications' => (clone $applicationQuery)->where('status', 'selected')->count(),
+                    'rejected_applications' => (clone $applicationQuery)->where('status', 'rejected')->count(),
                 ],
             ]);
         }
@@ -61,6 +70,9 @@ class DashboardController extends Controller
                 'draft_jobs' => 0,
                 'closed_jobs' => 0,
                 'applications' => $user->jobApplications()->count(),
+                'pending_applications' => $user->jobApplications()->where('status', 'pending')->count(),
+                'selected_applications' => $user->jobApplications()->where('status', 'selected')->count(),
+                'rejected_applications' => $user->jobApplications()->where('status', 'rejected')->count(),
             ],
         ]);
     }

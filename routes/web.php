@@ -63,14 +63,24 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
+    /*
+    |--------------------------------------------------------------------------
+    | Employer Routes
+    |--------------------------------------------------------------------------
+    */
+
     Route::prefix('employer')
         ->name('employer.')
         ->middleware('role:employer')
         ->group(function () {
-            Route::get('/profile', [EmployerProfileController::class, 'edit'])->name('profile.edit');
-            Route::put('/profile', [EmployerProfileController::class, 'update'])->name('profile.update');
+            Route::get('/profile', [EmployerProfileController::class, 'edit'])
+                ->name('profile.edit');
 
-            Route::resource('jobs', EmployerJobPostController::class)->except(['show']);
+            Route::put('/profile', [EmployerProfileController::class, 'update'])
+                ->name('profile.update');
+
+            Route::resource('jobs', EmployerJobPostController::class)
+                ->except(['show']);
 
             Route::patch('/jobs/{job}/publish', [EmployerJobPostController::class, 'publish'])
                 ->name('jobs.publish');
@@ -92,14 +102,32 @@ Route::middleware('auth')->group(function () {
 
             Route::patch('/applications/{application}/status', [EmployerApplicationController::class, 'updateStatus'])
                 ->name('applications.status');
+
+            Route::patch('/applications/{application}/shortlist', [EmployerApplicationController::class, 'shortlist'])
+                ->name('applications.shortlist');
+
+            Route::patch('/applications/{application}/select', [EmployerApplicationController::class, 'select'])
+                ->name('applications.select');
+
+            Route::patch('/applications/{application}/reject', [EmployerApplicationController::class, 'reject'])
+                ->name('applications.reject');
         });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Applicant Routes
+    |--------------------------------------------------------------------------
+    */
 
     Route::prefix('applicant')
         ->name('applicant.')
         ->middleware('role:applicant')
         ->group(function () {
-            Route::get('/profile', [ApplicantProfileController::class, 'edit'])->name('profile.edit');
-            Route::put('/profile', [ApplicantProfileController::class, 'update'])->name('profile.update');
+            Route::get('/profile', [ApplicantProfileController::class, 'edit'])
+                ->name('profile.edit');
+
+            Route::put('/profile', [ApplicantProfileController::class, 'update'])
+                ->name('profile.update');
 
             Route::get('/applications', [ApplicantJobApplicationController::class, 'index'])
                 ->name('applications.index');
@@ -114,16 +142,23 @@ Route::middleware('auth')->group(function () {
                 ->name('jobs.apply.store');
         });
 
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Routes
+    |--------------------------------------------------------------------------
+    */
+
     Route::prefix('admin')
         ->name('admin.')
         ->middleware('role:super_admin|admin')
         ->group(function () {
-            Route::resource('users', UserController::class)->only([
-                'index',
-                'edit',
-                'update',
-                'destroy',
-            ]);
+            Route::resource('users', UserController::class)
+                ->only([
+                    'index',
+                    'edit',
+                    'update',
+                    'destroy',
+                ]);
 
             Route::resource('roles', RoleController::class);
             Route::resource('permissions', PermissionController::class);

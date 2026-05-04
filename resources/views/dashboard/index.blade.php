@@ -30,7 +30,7 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-info">
                 <div class="inner">
-                    <h3>0</h3>
+                    <h3>{{ $stats['total_jobs'] ?? 0 }}</h3>
                     <p>Total Jobs</p>
                 </div>
 
@@ -38,63 +38,151 @@
                     <i class="fas fa-briefcase"></i>
                 </div>
 
-                <a href="#" class="small-box-footer">
-                    View Jobs <i class="fas fa-arrow-circle-right"></i>
-                </a>
+                @role('employer')
+                    <a href="{{ route('employer.jobs.index') }}" class="small-box-footer">
+                        View Jobs <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                @else
+                    <a href="{{ route('jobs.index') }}" class="small-box-footer">
+                        View Jobs <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                @endrole
             </div>
         </div>
 
         <div class="col-lg-3 col-6">
             <div class="small-box bg-success">
                 <div class="inner">
-                    <h3>0</h3>
-                    <p>Applications</p>
+                    <h3>{{ $stats['published_jobs'] ?? 0 }}</h3>
+                    <p>Published Jobs</p>
                 </div>
 
                 <div class="icon">
-                    <i class="fas fa-file-alt"></i>
+                    <i class="fas fa-check-circle"></i>
                 </div>
 
-                <a href="#" class="small-box-footer">
-                    View Applications <i class="fas fa-arrow-circle-right"></i>
-                </a>
+                @role('employer')
+                    <a href="{{ route('employer.jobs.index') }}" class="small-box-footer">
+                        Manage Jobs <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                @else
+                    <a href="{{ route('jobs.index') }}" class="small-box-footer">
+                        Browse Jobs <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                @endrole
             </div>
         </div>
 
         <div class="col-lg-3 col-6">
             <div class="small-box bg-warning">
                 <div class="inner">
-                    <h3>0</h3>
-                    <p>Employers</p>
+                    <h3>{{ $stats['applications'] ?? 0 }}</h3>
+                    <p>Total Applications</p>
                 </div>
 
                 <div class="icon">
-                    <i class="fas fa-building"></i>
+                    <i class="fas fa-file-alt"></i>
                 </div>
 
-                <a href="#" class="small-box-footer">
-                    View Employers <i class="fas fa-arrow-circle-right"></i>
-                </a>
+                @role('employer')
+                    <a href="{{ route('employer.applications.index') }}" class="small-box-footer">
+                        Review Applications <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                @elserole('applicant')
+                    <a href="{{ route('applicant.applications.index') }}" class="small-box-footer">
+                        My Applications <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                @elserole('super_admin|admin')
+                    <a href="{{ route('admin.applications.index') }}" class="small-box-footer">
+                        View Applications <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                @else
+                    <a href="#" class="small-box-footer">
+                        View Details <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                @endrole
             </div>
         </div>
 
         <div class="col-lg-3 col-6">
             <div class="small-box bg-danger">
                 <div class="inner">
-                    <h3>0</h3>
-                    <p>Applicants</p>
+                    <h3>{{ $stats['closed_jobs'] ?? 0 }}</h3>
+                    <p>Closed Jobs</p>
                 </div>
 
                 <div class="icon">
-                    <i class="fas fa-users"></i>
+                    <i class="fas fa-lock"></i>
                 </div>
 
-                <a href="#" class="small-box-footer">
-                    View Applicants <i class="fas fa-arrow-circle-right"></i>
-                </a>
+                @role('employer')
+                    <a href="{{ route('employer.jobs.index') }}" class="small-box-footer">
+                        View Closed Jobs <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                @else
+                    <a href="{{ route('jobs.index') }}" class="small-box-footer">
+                        Browse Jobs <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                @endrole
             </div>
         </div>
     </div>
+
+    @role('employer')
+        <div class="row">
+
+            <div class="col-lg-4 col-md-6">
+                <div class="info-box">
+                    <span class="info-box-icon bg-warning">
+                        <i class="fas fa-hourglass-half"></i>
+                    </span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">Pending Applications</span>
+                        <span class="info-box-number">{{ $stats['pending_applications'] ?? 0 }}</span>
+
+                        <a href="{{ route('employer.applications.index', ['status' => 'pending']) }}" class="small text-muted">
+                            Review pending applications
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="info-box">
+                    <span class="info-box-icon bg-success">
+                        <i class="fas fa-user-check"></i>
+                    </span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">Selected Applicants</span>
+                        <span class="info-box-number">{{ $stats['selected_applications'] ?? 0 }}</span>
+
+                        <a href="{{ route('employer.applications.index', ['status' => 'selected']) }}" class="small text-muted">
+                            View selected applicants
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="info-box">
+                    <span class="info-box-icon bg-danger">
+                        <i class="fas fa-user-times"></i>
+                    </span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">Rejected Applicants</span>
+                        <span class="info-box-number">{{ $stats['rejected_applications'] ?? 0 }}</span>
+
+                        <a href="{{ route('employer.applications.index', ['status' => 'rejected']) }}" class="small text-muted">
+                            View rejected applicants
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endrole
 
     @if (in_array($dashboardType ?? null, ['employer', 'applicant'], true))
         <div class="row">

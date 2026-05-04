@@ -77,7 +77,9 @@
                         </td>
 
                         <td>
-                            <a href="{{ route('employer.jobs.applications', $job) }}" class="badge badge-dark">
+                            <a href="{{ route('employer.jobs.applications', $job) }}"
+                            class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-users mr-1"></i>
                                 {{ $job->applicationsCount() }}
                             </a>
                         </td>

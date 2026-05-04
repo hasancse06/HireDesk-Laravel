@@ -87,8 +87,9 @@
 
                         <td>
                             <a href="{{ route('employer.applications.show', $application) }}"
-                               class="btn btn-sm btn-primary">
-                                Review
+                            class="btn btn-sm btn-primary">
+                                <i class="fas fa-user-check mr-1"></i>
+                                Applicant Details
                             </a>
                         </td>
                     </tr>
