@@ -29,10 +29,17 @@
                 <div class="col-lg-4 mt-4 mt-lg-0 text-lg-right">
                     @auth
                         @role('applicant')
-                            <a href="#" class="public-btn public-btn-primary">
-                                <i class="fas fa-paper-plane"></i>
-                                Apply Now
-                            </a>
+                            @if ($job->hasApplied(auth()->user()))
+                                <a href="{{ route('applicant.applications.index') }}" class="public-btn public-btn-light w-100 justify-content-center">
+                                    <i class="fas fa-check-circle"></i>
+                                    Already Applied
+                                </a>
+                            @else
+                                <a href="{{ route('applicant.jobs.apply.create', $job) }}" class="public-btn public-btn-primary w-100 justify-content-center">
+                                    <i class="fas fa-paper-plane"></i>
+                                    Apply Now
+                                </a>
+                            @endif
                         @else
                             <a href="{{ route('dashboard') }}" class="public-btn public-btn-light">
                                 Go to Dashboard
@@ -160,10 +167,17 @@
 
                         @auth
                             @role('applicant')
-                                <a href="#" class="public-btn public-btn-primary w-100 justify-content-center">
-                                    <i class="fas fa-paper-plane"></i>
-                                    Apply Now
-                                </a>
+                               @if ($job->hasApplied(auth()->user()))
+                                    <a href="{{ route('applicant.applications.index') }}" class="public-btn public-btn-light">
+                                        <i class="fas fa-check-circle"></i>
+                                        Already Applied
+                                    </a>
+                                @else
+                                    <a href="{{ route('applicant.jobs.apply.create', $job) }}" class="public-btn public-btn-primary">
+                                        <i class="fas fa-paper-plane"></i>
+                                        Apply Now
+                                    </a>
+                                @endif
                             @else
                                 <a href="{{ route('dashboard') }}" class="public-btn public-btn-primary w-100 justify-content-center">
                                     Go to Dashboard

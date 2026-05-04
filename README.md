@@ -49,428 +49,573 @@ This makes the project useful for learning, client work, open-source collaborati
 ## 🧩 Current Phase
 
 ---
+---
 
+## 📨 Phase 7 — Job Application System
 
-## 🌐 Phase 6 — Public Job Board UI
+Phase 7 adds the complete job application workflow to HireDesk Laravel.
 
-Phase 6 adds a polished public-facing job board interface to HireDesk Laravel.
-
-Before this phase, job browsing used the internal AdminLTE dashboard layout. Phase 6 separates the public job board experience from the authenticated dashboard experience, making the project feel like a real job portal website.
-
-Guests, applicants, employers, and admins can now browse published jobs using a clean public UI, while employer/admin management features remain inside the dashboard.
+Applicants can now apply to published jobs with a cover letter, resume, expected salary, availability date, and portfolio URL. Employers can review applications submitted to their own jobs, update application statuses, and see real application counts. Admin users can view all applications across the platform.
 
 ---
 
 ## ✅ Completed Features
 
-- Public job board layout
-- Public navigation/header
-- Public footer
-- Polished job listing page
-- Public hero section
-- Search and filter panel
-- Job cards with company logo placeholder
-- Company name links
-- Job type badges
-- Remote/on-site/hybrid badges
-- Salary badge
-- Deadline badge
-- Pagination
-- Public job details page
-- Public company profile page
-- Public company jobs listing
-- Guest users can browse published jobs
-- Guest users can view job details
-- Guest users can view company pages
-- Logged-in applicants see an Apply Now button placeholder
-- Guests see Login to Apply button
-- Employers/admins can return to dashboard
-- `/jobs`, `/jobs/{slug}`, and `/companies/{company}` are now public routes
+- Job application database table
+- JobApplication model
+- Applicants can apply to published jobs
+- Cover letter submission
+- Resume upload support
+- Expected salary field
+- Availability date field
+- Portfolio URL field
+- Duplicate application prevention
+- Employers cannot apply to jobs
+- Employers can only view applications for their own jobs
+- Employers can update application status
+- Admin can view all applications
+- Applicant application history
+- Applicant application details page
+- Employer application list
+- Employer application details/review page
+- Employer applications by job page
+- Admin application list
+- Admin application details page
+- Real applications count connected to job posts
+- Resume storage through Laravel public disk
+- Application status badges
+- Sidebar links updated by role
 
 ---
 
-## 🎯 Purpose of Phase 6
+## 🧾 Application Fields
 
-The goal of this phase is to make HireDesk Laravel look and feel like a real job board website.
+Each job application includes the following fields:
 
-This phase improves the user experience for:
-
-- Guests browsing jobs
-- Applicants searching for opportunities
-- Employers previewing published job posts
-- Developers using HireDesk Laravel as a job portal starter
-- Agencies or freelancers customizing it for client projects
-
-The project now has a clear separation between:
-
-```txt
-Public job board pages
-Authenticated dashboard pages
-Employer management pages
-Admin management pages
-```
-
----
-
-## 🧭 Public Page Structure
-
-Phase 6 introduces these public-facing pages:
-
-| URL | Description |
+| Field | Description |
 |---|---|
-| `/` | Redirects to the public job listing page |
-| `/jobs` | Public job listing page |
-| `/jobs/{slug}` | Public job details page |
-| `/companies/{company}` | Public company profile and open jobs page |
+| `job_post_id` | The job post being applied to |
+| `applicant_id` | The applicant user who submitted the application |
+| `cover_letter` | Applicant cover letter |
+| `resume_path` | Uploaded resume file path |
+| `expected_salary` | Applicant expected salary |
+| `availability_date` | Date when applicant can start |
+| `portfolio_url` | Applicant portfolio link |
+| `status` | Current application status |
+| `reviewed_at` | Date/time when employer reviewed the application |
+| `reviewed_by` | Employer/admin user who reviewed the application |
+| `created_at` | Application submission date |
+| `updated_at` | Last update date |
+| `deleted_at` | Soft delete timestamp |
 
 ---
 
-## 🖼️ Public Layout
+## 🗄️ Database Table Added
 
-A new public layout was added:
-
-```txt
-resources/views/layouts/public.blade.php
-```
-
-This layout includes:
-
-- Public navbar
-- HireDesk brand
-- Browse Jobs link
-- Login/register links for guests
-- Dashboard link for authenticated users
-- Public footer
-- Public CSS assets
-- Meta description support
-
-The public layout is separate from:
+Phase 7 adds the following table:
 
 ```txt
-resources/views/layouts/admin.blade.php
-resources/views/layouts/auth.blade.php
+job_applications
 ```
 
-This keeps the public website UI separate from the AdminLTE dashboard UI.
+### `job_applications` Table Structure
+
+```txt
+id
+job_post_id
+applicant_id
+cover_letter
+resume_path
+expected_salary
+availability_date
+portfolio_url
+status
+reviewed_at
+reviewed_by
+created_at
+updated_at
+deleted_at
+```
+
+### Unique Application Rule
+
+Each applicant can apply to the same job only once.
+
+```txt
+unique(job_post_id, applicant_id)
+```
+
+This prevents duplicate applications at the database level.
 
 ---
 
-## 🎨 Public CSS
+## 🏷️ Application Statuses
 
-A new CSS file was added for the public job board design:
+The application workflow supports four statuses:
 
-```txt
-public/assets/css/public.css
-```
-
-It includes styling for:
-
-- Public navbar
-- Public hero section
-- Search panel
-- Job cards
-- Company logo placeholders
-- Badges
-- Job detail hero
-- Job summary cards
-- Company profile page
-- Public footer
-- Responsive mobile layout
+| Status | Description |
+|---|---|
+| `pending` | Application has been submitted but not reviewed yet |
+| `shortlisted` | Employer has shortlisted the applicant |
+| `selected` | Employer has selected the applicant |
+| `rejected` | Employer has rejected the application |
 
 ---
 
-## 🔎 Public Job Listing Page
+## 🔗 Model Relationships
 
-The public job listing page is available at:
+### JobPost Model
 
-```txt
-/jobs
-```
-
-It includes:
-
-- Hero section
-- Published job count
-- Remote job count
-- Hiring company count
-- Search bar
-- Location filter
-- Workplace type filter
-- Job type filter
-- Job cards
-- Pagination
-
-### Search and Filter Support
-
-The job board supports the following query filters:
-
-| Filter | Query Parameter | Example |
-|---|---|---|
-| Keyword search | `search` | `/jobs?search=Laravel` |
-| Location | `location` | `/jobs?location=Remote` |
-| Workplace type | `workplace_type` | `/jobs?workplace_type=remote` |
-| Job type | `job_type` | `/jobs?job_type=full_time` |
-
-Example combined search:
-
-```txt
-/jobs?search=Laravel&location=Remote&workplace_type=remote&job_type=full_time
-```
-
----
-
-## 🧾 Public Job Cards
-
-Each job card displays:
-
-- Company logo placeholder
-- Job title
-- Company name
-- Company profile link
-- Location
-- Application deadline
-- Workplace type badge
-- Job type badge
-- Salary badge
-- Skills required
-- Posted date
-- View details button
-
-Example badge types:
-
-```txt
-Remote
-On-site
-Hybrid
-Full-time
-Part-time
-Contract
-Salary range
-Application deadline
-```
-
----
-
-## 📄 Public Job Details Page
-
-The public job details page is available at:
-
-```txt
-/jobs/{job-slug}
-```
-
-It includes:
-
-- Job title
-- Company name
-- Location
-- Workplace type
-- Job type
-- Salary range
-- Application deadline
-- Full job description
-- Skills required
-- Job summary card
-- About company card
-- Related jobs section
-- Apply button placeholder
-
-### Apply Button Behavior
-
-In Phase 6, the apply button is only a placeholder because the application workflow will be added in Phase 7.
-
-Current behavior:
-
-```txt
-Guest user → Login to Apply button
-Applicant user → Apply Now button placeholder
-Employer/Admin user → Go to Dashboard button
-```
-
----
-
-## 🏢 Public Company Page
-
-A new company profile page was added:
-
-```txt
-/companies/{company}
-```
-
-Example:
-
-```txt
-/companies/remote-tech-inc
-```
-
-The company page includes:
-
-- Company name
-- Company logo placeholder
-- Industry
-- Location
-- Remote-friendly status
-- Company website link
-- Company overview
-- Company size
-- Open published jobs from that company
-
-Only published and active jobs are shown on the company page.
-
----
-
-## 🧱 Public Route Changes
-
-In previous phases, `/jobs` was inside the authenticated route group.
-
-In Phase 6, job browsing routes were moved outside the `auth` middleware so guests can browse jobs.
-
-### Public Routes
+Each job post can have many applications.
 
 ```php
-Route::get('/', function () {
-    return redirect()->route('jobs.index');
-});
-
-Route::get('/jobs', [JobBoardController::class, 'index'])->name('jobs.index');
-Route::get('/jobs/{job:slug}', [JobBoardController::class, 'show'])->name('jobs.show');
-Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
+public function applications(): HasMany
+{
+    return $this->hasMany(JobApplication::class);
+}
 ```
 
-This means:
+The job application count now uses real application data.
 
-```txt
-Guests can browse jobs.
-Guests can view job details.
-Guests can view company pages.
-Authentication is only required for dashboard, employer, applicant, and admin management routes.
+```php
+public function applicationsCount(): int
+{
+    return $this->applications()->count();
+}
+```
+
+The model also checks whether a user has already applied.
+
+```php
+public function hasApplied(?User $user = null): bool
+{
+    $user = $user ?: auth()->user();
+
+    if (! $user) {
+        return false;
+    }
+
+    return $this->applications()
+        ->where('applicant_id', $user->id)
+        ->exists();
+}
+```
+
+### User Model
+
+Applicants can have many job applications.
+
+```php
+public function jobApplications(): HasMany
+{
+    return $this->hasMany(JobApplication::class, 'applicant_id');
+}
+```
+
+Users can also be reviewers of applications.
+
+```php
+public function reviewedApplications(): HasMany
+{
+    return $this->hasMany(JobApplication::class, 'reviewed_by');
+}
+```
+
+### JobApplication Model
+
+Each application belongs to a job post.
+
+```php
+public function jobPost(): BelongsTo
+{
+    return $this->belongsTo(JobPost::class);
+}
+```
+
+Each application belongs to an applicant.
+
+```php
+public function applicant(): BelongsTo
+{
+    return $this->belongsTo(User::class, 'applicant_id');
+}
+```
+
+Each application may have a reviewer.
+
+```php
+public function reviewer(): BelongsTo
+{
+    return $this->belongsTo(User::class, 'reviewed_by');
+}
 ```
 
 ---
 
-## 🧭 Dashboard vs Public Job Board
+## 🧠 JobApplication Model Helpers
 
-Phase 6 creates a clear separation between dashboard pages and public pages.
+The `JobApplication` model includes helper methods for UI display.
 
-### Public Side
+### Status Badge
 
-```txt
-/jobs
-/jobs/{slug}
-/companies/{company}
+```php
+public function statusBadgeClass(): string
+{
+    return match ($this->status) {
+        'shortlisted' => 'info',
+        'selected' => 'success',
+        'rejected' => 'danger',
+        default => 'warning',
+    };
+}
 ```
 
-Used for:
+### Status Label
 
-```txt
-Public job browsing
-Job details
-Company profile pages
-Login/register CTA
+```php
+public function statusLabel(): string
+{
+    return ucfirst($this->status);
+}
 ```
 
-### Dashboard Side
+### Resume URL
 
-```txt
-/dashboard
-/employer/jobs
-/employer/profile
-/applicant/profile
-/admin/users
-/admin/roles
-/admin/permissions
+```php
+public function resumeUrl(): ?string
+{
+    if (! $this->resume_path) {
+        return null;
+    }
+
+    return asset('storage/' . $this->resume_path);
+}
 ```
-
-Used for:
-
-```txt
-Authenticated user dashboard
-Employer job management
-Profile management
-Admin management
-```
-
-When a logged-in user clicks **Browse Jobs** from the dashboard sidebar, they are intentionally taken to the public job board page.
-
-This is expected behavior because `/jobs` is now the public job browsing experience.
 
 ---
 
-## 🧠 Controller Updates
+## 🧭 Application Routes
 
-### JobBoardController
+Phase 7 adds applicant, employer, and admin application routes.
 
-The `JobBoardController` now powers the polished public job board.
+### Applicant Routes
 
-```txt
-app/Http/Controllers/JobBoardController.php
-```
+| Method | URL | Name | Description |
+|---|---|---|---|
+| GET | `/applicant/applications` | `applicant.applications.index` | Applicant application history |
+| GET | `/applicant/applications/{application}` | `applicant.applications.show` | Applicant application details |
+| GET | `/applicant/jobs/{job:slug}/apply` | `applicant.jobs.apply.create` | Show job application form |
+| POST | `/applicant/jobs/{job:slug}/apply` | `applicant.jobs.apply.store` | Submit job application |
 
-It handles:
+### Employer Routes
 
-- Public job listing
-- Search
-- Filters
-- Public job details
-- Job board statistics
-- Related jobs
+| Method | URL | Name | Description |
+|---|---|---|---|
+| GET | `/employer/applications` | `employer.applications.index` | List applications for employer’s jobs |
+| GET | `/employer/applications/{application}` | `employer.applications.show` | Review application details |
+| PATCH | `/employer/applications/{application}/status` | `employer.applications.status` | Update application status |
+| GET | `/employer/jobs/{job}/applications` | `employer.jobs.applications` | List applications for a specific job |
 
-### CompanyController
+### Admin Routes
 
-A new controller was added:
-
-```txt
-app/Http/Controllers/CompanyController.php
-```
-
-It handles:
-
-- Public company profile page
-- Open jobs by company
+| Method | URL | Name | Description |
+|---|---|---|---|
+| GET | `/admin/applications` | `admin.applications.index` | View all platform applications |
+| GET | `/admin/applications/{application}` | `admin.applications.show` | View application details as admin |
 
 ---
 
-## 📁 Files Added in Phase 6
+## 🧱 Role-Based Access Rules
 
-### Layout
+Phase 7 enforces application rules based on user roles.
+
+### Applicant Rules
 
 ```txt
-resources/views/layouts/public.blade.php
+Applicants can apply to published jobs.
+Applicants can view their own applications.
+Applicants cannot apply twice to the same job.
+Applicants cannot apply to expired jobs.
+Applicants cannot access employer application review pages.
 ```
 
-### CSS
+### Employer Rules
 
 ```txt
-public/assets/css/public.css
+Employers cannot apply to jobs.
+Employers can only view applications submitted to their own jobs.
+Employers can review application details.
+Employers can update application status.
+Employers cannot view applications for jobs owned by other employers.
 ```
 
-### Controller
+### Admin Rules
 
 ```txt
-app/Http/Controllers/CompanyController.php
+Admins can view all applications across the platform.
+Admins can view application details.
+Admins do not submit job applications by default.
+```
+
+---
+
+## 📎 Resume Upload
+
+Applicants can upload a resume when applying to a job.
+
+Supported formats:
+
+```txt
+PDF
+DOC
+DOCX
+```
+
+Maximum file size:
+
+```txt
+5MB
+```
+
+Resume files are stored on Laravel’s public disk:
+
+```txt
+storage/app/public/resumes
+```
+
+Public URL format:
+
+```txt
+/storage/resumes/filename.pdf
+```
+
+Run this command to make uploaded resumes publicly accessible:
+
+```bash
+php artisan storage:link
+```
+
+---
+
+## 🧑‍💼 Applicant Workflow
+
+Applicant flow:
+
+```txt
+Browse jobs
+View job details
+Click Apply Now
+Submit cover letter and application details
+Upload optional resume
+Track application status from dashboard
+View submitted application details
+```
+
+Applicant application dashboard:
+
+```txt
+/applicant/applications
+```
+
+Applicant users see:
+
+```txt
+Job title
+Company name
+Application status
+Applied date
+View details button
+```
+
+---
+
+## 🏢 Employer Workflow
+
+Employer flow:
+
+```txt
+Create/publish job
+View application count from My Jobs
+Open applications for a specific job
+Review applicant details
+View cover letter
+View resume
+View applicant profile summary
+Update application status
+```
+
+Employer application dashboard:
+
+```txt
+/employer/applications
+```
+
+Employer can filter applications by status:
+
+```txt
+pending
+shortlisted
+selected
+rejected
+```
+
+Employers can also view applications for a specific job:
+
+```txt
+/employer/jobs/{job}/applications
+```
+
+---
+
+## 🛡️ Admin Workflow
+
+Admin users can view all job applications across the platform.
+
+Admin application page:
+
+```txt
+/admin/applications
+```
+
+Admin users can see:
+
+```txt
+Applicant
+Job
+Employer
+Application status
+Applied date
+Application details
+Reviewer information
+```
+
+---
+
+## 🔘 Apply Button Behavior
+
+The public job details page now supports role-aware apply behavior.
+
+### Guest User
+
+```txt
+Shows Login to Apply button
+```
+
+### Applicant User
+
+```txt
+Shows Apply Now button if not applied
+Shows Already Applied button if already applied
+```
+
+### Employer/Admin User
+
+```txt
+Does not show applicant application form
+Shows dashboard-related action instead
+```
+
+---
+
+## 📊 Dashboard Updates
+
+Phase 7 updates dashboard statistics with application counts.
+
+### Admin Dashboard
+
+```txt
+Total jobs
+Published jobs
+Draft jobs
+Closed jobs
+Total applications
+```
+
+### Employer Dashboard
+
+```txt
+My total jobs
+My published jobs
+My draft jobs
+My closed jobs
+Applications received
+```
+
+### Applicant Dashboard
+
+```txt
+Published jobs available
+My applications
+```
+
+---
+
+## 📁 Files Added in Phase 7
+
+### Model
+
+```txt
+app/Models/JobApplication.php
+```
+
+### Controllers
+
+```txt
+app/Http/Controllers/Applicant/JobApplicationController.php
+app/Http/Controllers/Employer/ApplicationController.php
+app/Http/Controllers/Admin/ApplicationController.php
 ```
 
 ### Views
 
 ```txt
-resources/views/companies/show.blade.php
+resources/views/applicant/applications/create.blade.php
+resources/views/applicant/applications/index.blade.php
+resources/views/applicant/applications/show.blade.php
+
+resources/views/employer/applications/index.blade.php
+resources/views/employer/applications/by-job.blade.php
+resources/views/employer/applications/show.blade.php
+
+resources/views/admin/applications/index.blade.php
+resources/views/admin/applications/show.blade.php
+```
+
+### Migration
+
+```txt
+database/migrations/xxxx_xx_xx_xxxxxx_create_job_applications_table.php
 ```
 
 ---
 
-## 📝 Files Updated in Phase 6
+## 📝 Files Updated in Phase 7
 
 ```txt
-app/Http/Controllers/JobBoardController.php
+app/Models/JobPost.php
+app/Models/User.php
+app/Http/Controllers/DashboardController.php
 routes/web.php
-resources/views/jobs/index.blade.php
 resources/views/jobs/show.blade.php
+resources/views/employer/jobs/index.blade.php
 resources/views/partials/sidebar.blade.php
 ```
 
 ---
 
-## 🧪 Testing Phase 6
+## 🧪 Testing Phase 7
+
+Run migrations:
+
+```bash
+php artisan migrate
+```
+
+Create public storage link:
+
+```bash
+php artisan storage:link
+```
 
 Clear cache:
 
@@ -480,50 +625,15 @@ php artisan route:clear
 php artisan view:clear
 ```
 
-Check public job routes:
+Check application routes:
 
 ```bash
-php artisan route:list | grep jobs
-```
-
-Check company routes:
-
-```bash
-php artisan route:list | grep companies
-```
-
-Expected public routes:
-
-```txt
-GET|HEAD  jobs
-GET|HEAD  jobs/{job}
-GET|HEAD  companies/{company}
+php artisan route:list | grep applications
 ```
 
 ---
 
 ## ✅ Manual Testing Checklist
-
-### Guest Test
-
-Open these URLs without logging in:
-
-```txt
-/
- /jobs
-/jobs/{job-slug}
-/companies/{company-slug}
-```
-
-Expected result:
-
-```txt
-Guest can browse published jobs.
-Guest can view job details.
-Guest can view company profile pages.
-Guest sees Login to Apply button.
-Guest does not see AdminLTE dashboard sidebar/topbar on public pages.
-```
 
 ### Applicant Test
 
@@ -539,15 +649,20 @@ Test:
 ```txt
 /jobs
 /jobs/{job-slug}
+/applicant/jobs/{job-slug}/apply
+/applicant/applications
 ```
 
 Expected result:
 
 ```txt
-Applicant can browse public jobs.
-Applicant can view job details.
-Applicant sees Apply Now button placeholder.
-Applicant can return to dashboard from public navbar.
+Applicant can view published jobs.
+Applicant can apply to a job.
+Applicant can upload a resume.
+Applicant can submit cover letter, expected salary, availability date, and portfolio URL.
+Applicant is redirected to application history after applying.
+Applicant cannot apply twice to the same job.
+Applicant can view their own application details.
 ```
 
 ### Employer Test
@@ -563,17 +678,20 @@ Test:
 
 ```txt
 /employer/jobs
-/jobs
-/jobs/{job-slug}
+/employer/applications
+/employer/jobs/{job}/applications
+/employer/applications/{application}
 ```
 
 Expected result:
 
 ```txt
-Employer can manage jobs from /employer/jobs.
-Employer can preview the public job board from /jobs.
-Employer sees dashboard navigation on public pages.
-Employer does not see applicant apply workflow.
+Employer can see application count on job list.
+Employer can view applications submitted to their own jobs.
+Employer can review applicant details.
+Employer can view cover letter and resume.
+Employer can update application status.
+Employer cannot access applications for jobs owned by another employer.
 ```
 
 ### Admin Test
@@ -588,36 +706,49 @@ Password: password
 Test:
 
 ```txt
-/dashboard
-/jobs
-/admin/users
+/admin/applications
+/admin/applications/{application}
 ```
 
 Expected result:
 
 ```txt
-Admin can access dashboard/admin pages.
-Admin can browse public jobs.
-Admin can return to dashboard from the public navbar.
+Admin can view all applications.
+Admin can view full application details.
+Admin can see applicant, employer, job, reviewer, and status information.
 ```
 
 ---
 
 ## 🧰 Useful Commands
 
-Create company controller:
+Create model and migration:
 
 ```bash
-php artisan make:controller CompanyController
+php artisan make:model JobApplication -m
 ```
 
-Create company view folder:
+Create controllers:
 
 ```bash
-mkdir -p resources/views/companies
+php artisan make:controller Applicant/JobApplicationController
+php artisan make:controller Employer/ApplicationController
+php artisan make:controller Admin/ApplicationController
 ```
 
-Clear Laravel cache:
+Run migrations:
+
+```bash
+php artisan migrate
+```
+
+Create storage link:
+
+```bash
+php artisan storage:link
+```
+
+Clear cache:
 
 ```bash
 php artisan optimize:clear
@@ -628,39 +759,27 @@ php artisan view:clear
 Check routes:
 
 ```bash
-php artisan route:list
-```
-
-Check public job routes:
-
-```bash
-php artisan route:list | grep jobs
-```
-
-Check company routes:
-
-```bash
-php artisan route:list | grep companies
+php artisan route:list | grep applications
 ```
 
 ---
 
-## ✅ Phase 6 Status
+## ✅ Phase 7 Status
 
-Phase 6 is completed with:
+Phase 7 is completed with:
 
-- Public job board layout
-- Polished public job listing page
-- Public job details page
-- Public company profile page
-- Guest job browsing
-- Search and filters
-- Job cards
-- Company logo placeholders
-- Badges
-- Pagination
-- Public apply button placeholder
-- Dashboard/public UI separation
+- Job application model
+- Application database table
+- Applicant application form
+- Resume upload
+- Duplicate application prevention
+- Applicant application history
+- Employer application review
+- Employer status update workflow
+- Admin application overview
+- Real application counts on job posts
+- Role-based application access
+- AdminLTE-compatible application UI
 
 ---
 

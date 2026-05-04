@@ -1,8 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use App\Models\JobPost;
+use App\Models\JobApplication;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -21,6 +21,7 @@ class DashboardController extends Controller
                     'published_jobs' => JobPost::where('status', 'published')->count(),
                     'draft_jobs' => JobPost::where('status', 'draft')->count(),
                     'closed_jobs' => JobPost::where('status', 'closed')->count(),
+                    'applications' => JobApplication::count(),
                 ],
             ]);
         }
@@ -39,6 +40,9 @@ class DashboardController extends Controller
                     'published_jobs' => $user->jobPosts()->where('status', 'published')->count(),
                     'draft_jobs' => $user->jobPosts()->where('status', 'draft')->count(),
                     'closed_jobs' => $user->jobPosts()->where('status', 'closed')->count(),
+                    'applications' => JobApplication::whereHas('jobPost', function ($query) use ($user) {
+                        $query->where('user_id', $user->id);
+                    })->count(),
                 ],
             ]);
         }
@@ -56,6 +60,7 @@ class DashboardController extends Controller
                 'published_jobs' => JobPost::published()->count(),
                 'draft_jobs' => 0,
                 'closed_jobs' => 0,
+                'applications' => $user->jobApplications()->count(),
             ],
         ]);
     }

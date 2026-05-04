@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class JobPost extends Model
 {
@@ -156,9 +157,26 @@ class JobPost extends Model
         return \Carbon\Carbon::parse($this->application_deadline)->isPast();
     }
 
+    public function applications(): HasMany
+    {
+        return $this->hasMany(JobApplication::class);
+    }
+
     public function applicationsCount(): int
     {
-        // Placeholder until Phase 7 job application system is implemented.
-        return 0;
+        return $this->applications()->count();
+    }
+
+    public function hasApplied(?User $user = null): bool
+    {
+        $user = $user ?: auth()->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        return $this->applications()
+            ->where('applicant_id', $user->id)
+            ->exists();
     }
 }

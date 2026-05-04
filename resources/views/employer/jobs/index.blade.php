@@ -77,9 +77,9 @@
                         </td>
 
                         <td>
-                            <span class="badge badge-dark">
+                            <a href="{{ route('employer.jobs.applications', $job) }}" class="badge badge-dark">
                                 {{ $job->applicationsCount() }}
-                            </span>
+                            </a>
                         </td>
 
                         <td>{{ $job->deadlineLabel() }}</td>

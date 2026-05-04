@@ -9,6 +9,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasRoles;
@@ -97,5 +98,15 @@ class User extends Authenticatable
     public function jobPosts(): HasMany
     {
         return $this->hasMany(JobPost::class);
+    }
+
+    public function jobApplications(): HasMany
+    {
+        return $this->hasMany(JobApplication::class, 'applicant_id');
+    }
+
+    public function reviewedApplications(): HasMany
+    {
+        return $this->hasMany(JobApplication::class, 'reviewed_by');
     }
 }

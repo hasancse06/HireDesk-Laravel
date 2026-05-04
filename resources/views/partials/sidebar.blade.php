@@ -101,13 +101,35 @@
                     </li>
                 @endrole
 
-                <li class="nav-item">
-                    <a href="#"
-                    class="nav-link">
-                        <i class="nav-icon fas fa-file-alt"></i>
-                        <p>Applications</p>
-                    </a>
-                </li>
+                @role('applicant')
+                    <li class="nav-item">
+                        <a href="{{ route('applicant.applications.index') }}"
+                        class="nav-link {{ request()->routeIs('applicant.applications.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-file-alt"></i>
+                            <p>My Applications</p>
+                        </a>
+                    </li>
+                @endrole
+
+                @role('employer')
+                    <li class="nav-item">
+                        <a href="{{ route('employer.applications.index') }}"
+                        class="nav-link {{ request()->routeIs('employer.applications.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-file-alt"></i>
+                            <p>Applications</p>
+                        </a>
+                    </li>
+                @endrole
+
+                @role('super_admin|admin')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.applications.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.applications.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-file-alt"></i>
+                            <p>All Applications</p>
+                        </a>
+                    </li>
+                @endrole
 
                 @role('super_admin|admin')
                     <li class="nav-header">ADMINISTRATION</li>

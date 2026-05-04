@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\ApplicationController as AdminApplicationController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Applicant\JobApplicationController as ApplicantJobApplicationController;
 use App\Http\Controllers\Applicant\ProfileController as ApplicantProfileController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
@@ -10,6 +12,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Employer\ApplicationController as EmployerApplicationController;
 use App\Http\Controllers\Employer\JobPostController as EmployerJobPostController;
 use App\Http\Controllers\Employer\ProfileController as EmployerProfileController;
 use App\Http\Controllers\JobBoardController;
@@ -60,12 +63,6 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Employer Routes
-    |--------------------------------------------------------------------------
-    */
-
     Route::prefix('employer')
         ->name('employer.')
         ->middleware('role:employer')
@@ -83,13 +80,19 @@ Route::middleware('auth')->group(function () {
 
             Route::patch('/jobs/{job}/close', [EmployerJobPostController::class, 'close'])
                 ->name('jobs.close');
-        });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Applicant Routes
-    |--------------------------------------------------------------------------
-    */
+            Route::get('/jobs/{job}/applications', [EmployerApplicationController::class, 'byJob'])
+                ->name('jobs.applications');
+
+            Route::get('/applications', [EmployerApplicationController::class, 'index'])
+                ->name('applications.index');
+
+            Route::get('/applications/{application}', [EmployerApplicationController::class, 'show'])
+                ->name('applications.show');
+
+            Route::patch('/applications/{application}/status', [EmployerApplicationController::class, 'updateStatus'])
+                ->name('applications.status');
+        });
 
     Route::prefix('applicant')
         ->name('applicant.')
@@ -97,13 +100,19 @@ Route::middleware('auth')->group(function () {
         ->group(function () {
             Route::get('/profile', [ApplicantProfileController::class, 'edit'])->name('profile.edit');
             Route::put('/profile', [ApplicantProfileController::class, 'update'])->name('profile.update');
-        });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Admin Routes
-    |--------------------------------------------------------------------------
-    */
+            Route::get('/applications', [ApplicantJobApplicationController::class, 'index'])
+                ->name('applications.index');
+
+            Route::get('/applications/{application}', [ApplicantJobApplicationController::class, 'show'])
+                ->name('applications.show');
+
+            Route::get('/jobs/{job:slug}/apply', [ApplicantJobApplicationController::class, 'create'])
+                ->name('jobs.apply.create');
+
+            Route::post('/jobs/{job:slug}/apply', [ApplicantJobApplicationController::class, 'store'])
+                ->name('jobs.apply.store');
+        });
 
     Route::prefix('admin')
         ->name('admin.')
@@ -118,5 +127,11 @@ Route::middleware('auth')->group(function () {
 
             Route::resource('roles', RoleController::class);
             Route::resource('permissions', PermissionController::class);
+
+            Route::get('/applications', [AdminApplicationController::class, 'index'])
+                ->name('applications.index');
+
+            Route::get('/applications/{application}', [AdminApplicationController::class, 'show'])
+                ->name('applications.show');
         });
 });
