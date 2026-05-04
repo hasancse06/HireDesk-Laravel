@@ -84,16 +84,26 @@
                 <li class="nav-header">JOB BOARD</li>
 
                 <li class="nav-item">
-                    <a href="#"
-                       class="nav-link">
-                        <i class="nav-icon fas fa-briefcase"></i>
-                        <p>Jobs</p>
+                    <a href="{{ route('jobs.index') }}"
+                    class="nav-link {{ request()->routeIs('jobs.*') ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-search"></i>
+                        <p>Browse Jobs</p>
                     </a>
                 </li>
 
+                @role('employer')
+                    <li class="nav-item">
+                        <a href="{{ route('employer.jobs.index') }}"
+                        class="nav-link {{ request()->routeIs('employer.jobs.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-briefcase"></i>
+                            <p>My Jobs</p>
+                        </a>
+                    </li>
+                @endrole
+
                 <li class="nav-item">
                     <a href="#"
-                       class="nav-link">
+                    class="nav-link">
                         <i class="nav-icon fas fa-file-alt"></i>
                         <p>Applications</p>
                     </a>

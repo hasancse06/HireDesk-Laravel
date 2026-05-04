@@ -50,138 +50,121 @@ This makes the project useful for learning, client work, open-source collaborati
 
 ---
 
-## 👥 Phase 4 — Employer and Applicant Profiles
+## 💼 Phase 5 — Job Posting System
 
-Phase 4 adds role-specific profile management for employers and applicants.
+Phase 5 adds the core job posting system to HireDesk Laravel.
 
-This phase improves the registration and dashboard experience by creating dedicated profile records for each user type. Employers now have company profiles, applicants now have professional profiles, and dashboards can display profile completion progress based on the logged-in user’s role.
+Employers can now create and manage job posts, while applicants can browse published jobs, search jobs, filter job listings, and view job details. This phase turns HireDesk Laravel from an authentication/profile-based dashboard into a functional job board foundation.
+
+> Note: Laravel already uses a default `jobs` table for queued jobs. To avoid conflict, this project uses a dedicated `job_posts` table for job board listings.
 
 ---
 
 ## ✅ Completed Features
 
-- Register as Employer
-- Register as Applicant
-- Employer profile table
-- Applicant profile table
-- Automatic employer profile creation after registration
-- Automatic applicant profile creation after registration
-- Employer profile edit page
-- Applicant profile edit page
-- Profile completion percentage
-- Profile-specific dashboard card
-- Role-specific profile routes
-- Role-specific sidebar profile links
-- Profile-specific dashboard data
-- Seeded demo employer profile
-- Seeded demo applicant profile
+- Job post database table
+- JobPost model
+- Employer job CRUD
+- Employers can create job posts
+- Employers can edit their own job posts
+- Employers can delete their own job posts
+- Employers can publish job posts
+- Employers can unpublish job posts
+- Employers can close job posts
+- Employers can see applications count placeholder
+- Applicants can browse published jobs
+- Applicants can search jobs
+- Applicants can filter jobs by workplace type, location, and job type
+- Applicants can view job details
+- Published-only job board listing
+- Draft and closed jobs hidden from applicant browse page
+- SEO-friendly job slug URLs
+- Dashboard job stats
+- AdminLTE-compatible job management UI
+- AdminLTE-compatible job browsing UI
 
 ---
 
-## 🧑‍💼 Employer Profile
+## 🧾 Job Fields
 
-Employers can manage company and hiring-related details.
-
-### Employer Profile Fields
+Each job post includes the following fields:
 
 | Field | Description |
 |---|---|
-| `company_name` | Employer/company name |
-| `company_website` | Company website URL |
-| `company_logo` | Placeholder field for future logo upload |
-| `company_size` | Number of employees |
-| `industry` | Business industry/category |
-| `location` | Company location or remote location |
-| `remote_friendly` | Indicates if the company supports remote work |
-| `company_description` | Short company overview |
-
-### Employer Profile Route
-
-```txt
-/employer/profile
-```
-
-Only users with the `employer` role can access this route.
-
----
-
-## 👨‍💻 Applicant Profile
-
-Applicants can manage their professional job-seeker profile.
-
-### Applicant Profile Fields
-
-| Field | Description |
-|---|---|
-| `headline` | Professional title or headline |
-| `phone` | Contact phone number |
-| `location` | Applicant location |
-| `experience_level` | Entry, Junior, Mid, Senior, Lead, etc. |
-| `expected_salary` | Expected salary or compensation note |
-| `portfolio_url` | Personal portfolio link |
-| `linkedin_url` | LinkedIn profile link |
-| `github_url` | GitHub profile link |
-| `resume_path` | Placeholder field for future resume upload |
-| `skills` | Applicant skills, currently stored as text |
-| `bio` | Professional summary |
-
-### Applicant Profile Route
-
-```txt
-/applicant/profile
-```
-
-Only users with the `applicant` role can access this route.
+| `title` | Job title |
+| `slug` | SEO-friendly unique job URL slug |
+| `user_id` | Employer user who created the job |
+| `company_name` | Company or employer name |
+| `location` | Job location |
+| `workplace_type` | Remote, On-site, or Hybrid |
+| `job_type` | Full-time, Part-time, or Contract |
+| `salary_currency` | Salary currency such as USD |
+| `salary_min` | Minimum salary |
+| `salary_max` | Maximum salary |
+| `skills_required` | Required skills for the job |
+| `description` | Full job description |
+| `status` | Draft, Published, or Closed |
+| `application_deadline` | Last date to apply |
+| `published_at` | Date/time when job was published |
+| `deleted_at` | Soft delete timestamp |
 
 ---
 
-## 🗄️ Database Tables Added
+## 🗄️ Database Table Added
 
-Phase 4 adds two new profile tables.
+Phase 5 adds the following table:
 
 ```txt
-employer_profiles
-applicant_profiles
+job_posts
 ```
 
-### `employer_profiles`
+### `job_posts` Table Structure
 
 ```txt
 id
 user_id
+title
+slug
 company_name
-company_website
-company_logo
-company_size
-industry
 location
-remote_friendly
-company_description
+workplace_type
+job_type
+salary_currency
+salary_min
+salary_max
+skills_required
+description
+status
+application_deadline
+published_at
 created_at
 updated_at
+deleted_at
 ```
 
-### `applicant_profiles`
+### Job Status Values
 
 ```txt
-id
-user_id
-headline
-phone
-location
-experience_level
-expected_salary
-portfolio_url
-linkedin_url
-github_url
-resume_path
-skills
-bio
-created_at
-updated_at
+draft
+published
+closed
 ```
 
-Each profile table has a unique `user_id`, so each user can only have one role-specific profile.
+### Workplace Type Values
+
+```txt
+remote
+on_site
+hybrid
+```
+
+### Job Type Values
+
+```txt
+full_time
+part_time
+contract
+```
 
 ---
 
@@ -189,258 +172,348 @@ Each profile table has a unique `user_id`, so each user can only have one role-s
 
 ### User Model
 
-The `User` model now supports employer and applicant profile relationships.
+Employers can have many job posts.
 
 ```php
-public function employerProfile(): HasOne
+public function jobPosts(): HasMany
 {
-    return $this->hasOne(EmployerProfile::class);
-}
-
-public function applicantProfile(): HasOne
-{
-    return $this->hasOne(ApplicantProfile::class);
+    return $this->hasMany(JobPost::class);
 }
 ```
 
-### EmployerProfile Model
+### JobPost Model
+
+Each job post belongs to an employer user.
 
 ```php
-public function user(): BelongsTo
+public function employer(): BelongsTo
 {
-    return $this->belongsTo(User::class);
-}
-```
-
-### ApplicantProfile Model
-
-```php
-public function user(): BelongsTo
-{
-    return $this->belongsTo(User::class);
+    return $this->belongsTo(User::class, 'user_id');
 }
 ```
 
 ---
 
-## 📊 Profile Completion
+## 🧠 JobPost Model Helpers
 
-Both employer and applicant profiles include a simple profile completion calculation.
-
-Example:
+The `JobPost` model includes helper methods for cleaner UI and business logic.
 
 ```php
-public function completionPercentage(): int
+public function isDraft(): bool
 {
-    $fields = [
-        'company_name',
-        'company_website',
-        'company_size',
-        'industry',
-        'location',
-        'company_description',
-    ];
+    return $this->status === 'draft';
+}
 
-    $completed = collect($fields)
-        ->filter(fn ($field) => filled($this->{$field}))
-        ->count();
+public function isPublished(): bool
+{
+    return $this->status === 'published';
+}
 
-    return (int) round(($completed / count($fields)) * 100);
+public function isClosed(): bool
+{
+    return $this->status === 'closed';
 }
 ```
 
-The dashboard displays a profile completion card for employer and applicant users.
+### Publish / Unpublish / Close
+
+```php
+public function publish(): void
+{
+    $this->update([
+        'status' => 'published',
+        'published_at' => $this->published_at ?? now(),
+    ]);
+}
+
+public function unpublish(): void
+{
+    $this->update([
+        'status' => 'draft',
+    ]);
+}
+
+public function close(): void
+{
+    $this->update([
+        'status' => 'closed',
+    ]);
+}
+```
+
+### Published Scope
+
+Only published and non-expired jobs appear in the applicant job board.
+
+```php
+public function scopePublished(Builder $query): Builder
+{
+    return $query
+        ->where('status', 'published')
+        ->where(function (Builder $query) {
+            $query->whereNull('application_deadline')
+                ->orWhereDate('application_deadline', '>=', now()->toDateString());
+        });
+}
+```
+
+### Salary and Deadline Helpers
+
+```php
+public function salaryRange(): string
+{
+    if (! $this->salary_min && ! $this->salary_max) {
+        return 'Not specified';
+    }
+
+    if ($this->salary_min && $this->salary_max) {
+        return $this->salary_currency . ' ' . number_format((float) $this->salary_min) . ' - ' . number_format((float) $this->salary_max);
+    }
+
+    if ($this->salary_min) {
+        return 'From ' . $this->salary_currency . ' ' . number_format((float) $this->salary_min);
+    }
+
+    return 'Up to ' . $this->salary_currency . ' ' . number_format((float) $this->salary_max);
+}
+
+public function deadlineLabel(): string
+{
+    if (! $this->application_deadline) {
+        return 'Open until filled';
+    }
+
+    return \Carbon\Carbon::parse($this->application_deadline)->format('M d, Y');
+}
+```
 
 ---
 
-## 🧭 Profile Routes
+## 🧭 Job Routes
 
-Phase 4 adds role-protected profile routes.
+Phase 5 adds employer job management routes and job board browsing routes.
 
-| Method | URL | Name | Role |
+### Job Board Routes
+
+| Method | URL | Name | Description |
 |---|---|---|---|
-| GET | `/employer/profile` | `employer.profile.edit` | employer |
-| PUT | `/employer/profile` | `employer.profile.update` | employer |
-| GET | `/applicant/profile` | `applicant.profile.edit` | applicant |
-| PUT | `/applicant/profile` | `applicant.profile.update` | applicant |
+| GET | `/jobs` | `jobs.index` | Browse published jobs |
+| GET | `/jobs/{job:slug}` | `jobs.show` | View job details |
+
+### Employer Job Management Routes
+
+| Method | URL | Name | Description |
+|---|---|---|---|
+| GET | `/employer/jobs` | `employer.jobs.index` | Employer job list |
+| GET | `/employer/jobs/create` | `employer.jobs.create` | Create job form |
+| POST | `/employer/jobs` | `employer.jobs.store` | Store new job |
+| GET | `/employer/jobs/{job}/edit` | `employer.jobs.edit` | Edit job form |
+| PUT/PATCH | `/employer/jobs/{job}` | `employer.jobs.update` | Update job |
+| DELETE | `/employer/jobs/{job}` | `employer.jobs.destroy` | Delete job |
+| PATCH | `/employer/jobs/{job}/publish` | `employer.jobs.publish` | Publish job |
+| PATCH | `/employer/jobs/{job}/unpublish` | `employer.jobs.unpublish` | Move job back to draft |
+| PATCH | `/employer/jobs/{job}/close` | `employer.jobs.close` | Close job |
 
 ---
 
 ## 🧱 Role-Based Access
 
-Profile routes are protected using Spatie role middleware.
+Employer job management routes are protected using Spatie role middleware.
 
 ```php
 Route::prefix('employer')
     ->name('employer.')
     ->middleware('role:employer')
     ->group(function () {
-        Route::get('/profile', [EmployerProfileController::class, 'edit'])->name('profile.edit');
-        Route::put('/profile', [EmployerProfileController::class, 'update'])->name('profile.update');
-    });
+        Route::resource('jobs', EmployerJobPostController::class)->except(['show']);
 
-Route::prefix('applicant')
-    ->name('applicant.')
-    ->middleware('role:applicant')
-    ->group(function () {
-        Route::get('/profile', [ApplicantProfileController::class, 'edit'])->name('profile.edit');
-        Route::put('/profile', [ApplicantProfileController::class, 'update'])->name('profile.update');
+        Route::patch('/jobs/{job}/publish', [EmployerJobPostController::class, 'publish'])
+            ->name('jobs.publish');
+
+        Route::patch('/jobs/{job}/unpublish', [EmployerJobPostController::class, 'unpublish'])
+            ->name('jobs.unpublish');
+
+        Route::patch('/jobs/{job}/close', [EmployerJobPostController::class, 'close'])
+            ->name('jobs.close');
     });
 ```
 
 Expected behavior:
 
 ```txt
-Employer users can access employer profile routes.
-Applicant users can access applicant profile routes.
-Employer users cannot access applicant profile routes.
-Applicant users cannot access employer profile routes.
-Admin users manage the platform but do not use employer/applicant profile routes by default.
+Employer users can create, edit, delete, publish, unpublish, and close their own jobs.
+Employer users cannot edit jobs created by another employer.
+Applicant users can browse published jobs.
+Draft jobs are hidden from the applicant job board.
+Closed jobs are hidden from the applicant job board.
 ```
 
 ---
 
-## 🧭 Dashboard Controller
+## 🧑‍💼 Employer Job Management
 
-Phase 4 introduces a dedicated dashboard controller.
+Employers can manage jobs from:
 
 ```txt
-app/Http/Controllers/DashboardController.php
+/employer/jobs
 ```
 
-The dashboard now detects the authenticated user’s role and returns dashboard-specific data.
-
-Dashboard types:
+Employer actions:
 
 ```txt
-admin
-employer
-applicant
+Create job
+Edit job
+Delete job
+Publish job
+Unpublish job
+Close job
+View applications count placeholder
 ```
 
-Example behavior:
+After creating or updating a job, the employer is redirected back to:
 
 ```txt
-Super Admin/Admin → Admin dashboard
-Employer → Employer dashboard with company profile completion
-Applicant → Applicant dashboard with professional profile completion
+/employer/jobs
+```
+
+This allows the employer to quickly review the job list and manage post status.
+
+---
+
+## 👨‍💻 Applicant Job Browsing
+
+Applicants can browse published jobs from:
+
+```txt
+/jobs
+```
+
+Available browsing features:
+
+```txt
+Search by job title
+Search by company name
+Search by skills
+Search by description
+Filter by location
+Filter by workplace type
+Filter by job type
+View job details
+```
+
+Job details page:
+
+```txt
+/jobs/{job-slug}
+```
+
+The application button is currently disabled because the application workflow will be added in a future phase.
+
+---
+
+## 🔎 Search and Filter Support
+
+The job board supports filtering by:
+
+| Filter | Query Parameter | Example |
+|---|---|---|
+| Search keyword | `search` | `/jobs?search=Laravel` |
+| Location | `location` | `/jobs?location=Remote` |
+| Workplace type | `workplace_type` | `/jobs?workplace_type=remote` |
+| Job type | `job_type` | `/jobs?job_type=full_time` |
+
+Example combined filter:
+
+```txt
+/jobs?search=Laravel&location=Remote&workplace_type=remote&job_type=full_time
 ```
 
 ---
 
-## 📝 Registration Profile Creation
+## 📊 Dashboard Job Stats
 
-When a user registers, the system automatically creates the correct profile type.
+Phase 5 updates the dashboard with job-related statistics.
 
-### Employer Registration
+### Admin Dashboard Stats
 
-```php
-if ($validated['role'] === 'employer') {
-    $user->employerProfile()->create([
-        'company_name' => $validated['name'],
-        'remote_friendly' => true,
-    ]);
-}
+```txt
+Total jobs
+Published jobs
+Draft jobs
+Closed jobs
 ```
 
-### Applicant Registration
+### Employer Dashboard Stats
 
-```php
-if ($validated['role'] === 'applicant') {
-    $user->applicantProfile()->create([
-        'headline' => 'New Applicant',
-    ]);
-}
+```txt
+My total jobs
+My published jobs
+My draft jobs
+My closed jobs
 ```
 
-This ensures every employer and applicant starts with a profile immediately after registration.
+### Applicant Dashboard Stats
+
+```txt
+Published jobs available
+```
 
 ---
 
-## 📁 Files Added in Phase 4
+## 📁 Files Added in Phase 5
 
-### Models
+### Model
 
 ```txt
-app/Models/EmployerProfile.php
-app/Models/ApplicantProfile.php
+app/Models/JobPost.php
 ```
 
 ### Controllers
 
 ```txt
-app/Http/Controllers/DashboardController.php
-app/Http/Controllers/Employer/ProfileController.php
-app/Http/Controllers/Applicant/ProfileController.php
+app/Http/Controllers/Employer/JobPostController.php
+app/Http/Controllers/JobBoardController.php
 ```
 
 ### Views
 
 ```txt
-resources/views/employer/profile/edit.blade.php
-resources/views/applicant/profile/edit.blade.php
+resources/views/employer/jobs/index.blade.php
+resources/views/employer/jobs/create.blade.php
+resources/views/employer/jobs/edit.blade.php
+resources/views/employer/jobs/_form.blade.php
+
+resources/views/jobs/index.blade.php
+resources/views/jobs/show.blade.php
 ```
 
-### Migrations
+### Migration
 
 ```txt
-database/migrations/xxxx_xx_xx_xxxxxx_create_employer_profiles_table.php
-database/migrations/xxxx_xx_xx_xxxxxx_create_applicant_profiles_table.php
+database/migrations/xxxx_xx_xx_xxxxxx_create_job_posts_table.php
 ```
 
 ---
 
-## 📝 Files Updated in Phase 4
+## 📝 Files Updated in Phase 5
 
 ```txt
 app/Models/User.php
-app/Http/Controllers/Auth/RegisterController.php
-database/seeders/RolePermissionSeeder.php
+app/Http/Controllers/DashboardController.php
 routes/web.php
-resources/views/dashboard/index.blade.php
 resources/views/partials/sidebar.blade.php
+resources/views/dashboard/index.blade.php
+public/assets/css/app.css
 ```
 
 ---
 
-## 👤 Demo Profile Data
-
-Phase 4 updates the demo employer and applicant users with profile records.
-
-### Demo Employer
-
-```txt
-Email: employer@hiredesk.test
-Password: password
-Company: Remote Tech Inc.
-Industry: Software Development
-Location: Remote
-```
-
-### Demo Applicant
-
-```txt
-Email: applicant@hiredesk.test
-Password: password
-Headline: Laravel Developer
-Skills: Laravel, PHP, MySQL, REST API, Blade, AdminLTE
-Location: Remote
-```
-
----
-
-## 🧪 Testing Phase 4
+## 🧪 Testing Phase 5
 
 Run migrations:
 
 ```bash
 php artisan migrate
-```
-
-Seed demo profile data:
-
-```bash
-php artisan db:seed --class=RolePermissionSeeder
 ```
 
 Clear cache:
@@ -449,19 +522,26 @@ Clear cache:
 php artisan optimize:clear
 ```
 
-Check profile routes:
+Check job routes:
 
 ```bash
-php artisan route:list | grep profile
+php artisan route:list | grep jobs
 ```
 
-Expected profile routes:
+Expected job routes:
 
 ```txt
-GET|HEAD  employer/profile
-PUT       employer/profile
-GET|HEAD  applicant/profile
-PUT       applicant/profile
+GET|HEAD   jobs
+GET|HEAD   jobs/{job}
+GET|HEAD   employer/jobs
+POST       employer/jobs
+GET|HEAD   employer/jobs/create
+GET|HEAD   employer/jobs/{job}/edit
+PUT|PATCH  employer/jobs/{job}
+DELETE     employer/jobs/{job}
+PATCH      employer/jobs/{job}/publish
+PATCH      employer/jobs/{job}/unpublish
+PATCH      employer/jobs/{job}/close
 ```
 
 ---
@@ -480,18 +560,38 @@ Password: password
 Test:
 
 ```txt
-/dashboard
-/employer/profile
+/employer/jobs
+/employer/jobs/create
+```
+
+Create a job post:
+
+```txt
+Title: Senior Laravel Developer
+Company: Remote Tech Inc.
+Location: Remote
+Workplace Type: Remote
+Job Type: Full-time
+Salary Currency: USD
+Salary Min: 3000
+Salary Max: 5000
+Skills Required: Laravel, PHP, MySQL, REST API
+Status: Published
+Application Deadline: Leave empty or choose a future date
+Description: We are hiring a Laravel developer for a remote SaaS project.
 ```
 
 Expected result:
 
 ```txt
-Employer can access dashboard.
-Employer can access company profile page.
-Employer can update company details.
-Employer sees profile completion card on dashboard.
-Employer cannot access /applicant/profile.
+Employer can create a job.
+Employer is redirected to /employer/jobs after creating a job.
+Employer can edit the job.
+Employer is redirected to /employer/jobs after updating a job.
+Employer can publish/unpublish the job.
+Employer can close the job.
+Employer can delete the job.
+Employer can see applications count placeholder.
 ```
 
 ### Applicant Test
@@ -506,18 +606,21 @@ Password: password
 Test:
 
 ```txt
-/dashboard
-/applicant/profile
+/jobs
+/jobs/{job-slug}
 ```
 
 Expected result:
 
 ```txt
-Applicant can access dashboard.
-Applicant can access professional profile page.
-Applicant can update professional details.
-Applicant sees profile completion card on dashboard.
-Applicant cannot access /employer/profile.
+Applicant can browse published jobs.
+Applicant can search jobs.
+Applicant can filter jobs.
+Applicant can view job details.
+Applicant cannot access employer job management routes.
+Draft jobs are not visible.
+Closed jobs are not visible.
+Expired jobs are not visible.
 ```
 
 ### Admin Test
@@ -533,40 +636,29 @@ Test:
 
 ```txt
 /dashboard
-/admin/users
-/admin/roles
-/admin/permissions
 ```
 
 Expected result:
 
 ```txt
-Admin can access dashboard and admin management pages.
-Admin profile-specific employer/applicant card is not shown by default.
+Admin dashboard shows total jobs, published jobs, draft jobs, and closed jobs.
 ```
 
 ---
 
 ## 🧰 Useful Commands
 
-Create models and migrations:
+Create model and migration:
 
 ```bash
-php artisan make:model EmployerProfile -m
-php artisan make:model ApplicantProfile -m
+php artisan make:model JobPost -m
 ```
 
-Create dashboard controller:
+Create controllers:
 
 ```bash
-php artisan make:controller DashboardController
-```
-
-Create profile controllers:
-
-```bash
-php artisan make:controller Employer/ProfileController
-php artisan make:controller Applicant/ProfileController
+php artisan make:controller Employer/JobPostController
+php artisan make:controller JobBoardController
 ```
 
 Run migrations:
@@ -575,45 +667,52 @@ Run migrations:
 php artisan migrate
 ```
 
-Seed demo data:
-
-```bash
-php artisan db:seed --class=RolePermissionSeeder
-```
-
 Clear cache:
 
 ```bash
 php artisan optimize:clear
 ```
 
-Check routes:
+Check job routes:
 
 ```bash
-php artisan route:list
-```
-
-Check profile routes:
-
-```bash
-php artisan route:list | grep profile
+php artisan route:list | grep jobs
 ```
 
 ---
 
-## ✅ Phase 4 Status
+## ✅ Phase 5 Status
 
-Phase 4 is completed with:
+Phase 5 is completed with:
 
-- Employer profile system
-- Applicant profile system
-- Automatic profile creation after registration
-- Profile completion calculation
-- Role-specific profile routes
-- Role-specific sidebar links
-- Role-specific dashboard data
-- AdminLTE-compatible profile edit pages
-- Seeded demo employer and applicant profiles
+- Job post database structure
+- Employer job management
+- Published job board listing
+- Search and filtering
+- Job details page
+- Role-based job access
+- Employer-only job CRUD
+- Publish/unpublish/close workflow
+- Dashboard job stats
+- AdminLTE-compatible job UI
+
+---
+
+## 🔜 Next Phase
+
+### Phase 6 — Public Job Board UI
+
+Planned features:
+
+- Public homepage
+- Public job listing page
+- Public job details page
+- Better job cards
+- SEO-friendly job browsing
+- Guest users can browse jobs
+- Applicants can apply after login
+- Public navigation/header
+- Job portal landing page
 
 ---
 

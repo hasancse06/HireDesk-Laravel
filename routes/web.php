@@ -9,12 +9,26 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Employer\JobPostController as EmployerJobPostController;
 use App\Http\Controllers\Employer\ProfileController as EmployerProfileController;
+use App\Http\Controllers\JobBoardController;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Guest Routes
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
@@ -30,10 +44,35 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [ResetPasswordController::class, 'store'])->name('password.update');
 });
 
+/*
+|--------------------------------------------------------------------------
+| Authenticated Routes
+|--------------------------------------------------------------------------
+*/
+
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Job Board Routes
+    |--------------------------------------------------------------------------
+    |
+    | Authenticated users can browse published jobs.
+    | In the next phase, these can be moved outside auth to become public.
+    |
+    */
+
+    Route::get('/jobs', [JobBoardController::class, 'index'])->name('jobs.index');
+    Route::get('/jobs/{job:slug}', [JobBoardController::class, 'show'])->name('jobs.show');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Employer Routes
+    |--------------------------------------------------------------------------
+    */
 
     Route::prefix('employer')
         ->name('employer.')
@@ -41,7 +80,24 @@ Route::middleware('auth')->group(function () {
         ->group(function () {
             Route::get('/profile', [EmployerProfileController::class, 'edit'])->name('profile.edit');
             Route::put('/profile', [EmployerProfileController::class, 'update'])->name('profile.update');
+
+            Route::resource('jobs', EmployerJobPostController::class)->except(['show']);
+
+            Route::patch('/jobs/{job}/publish', [EmployerJobPostController::class, 'publish'])
+                ->name('jobs.publish');
+
+            Route::patch('/jobs/{job}/unpublish', [EmployerJobPostController::class, 'unpublish'])
+                ->name('jobs.unpublish');
+
+            Route::patch('/jobs/{job}/close', [EmployerJobPostController::class, 'close'])
+                ->name('jobs.close');
         });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Applicant Routes
+    |--------------------------------------------------------------------------
+    */
 
     Route::prefix('applicant')
         ->name('applicant.')
@@ -50,6 +106,12 @@ Route::middleware('auth')->group(function () {
             Route::get('/profile', [ApplicantProfileController::class, 'edit'])->name('profile.edit');
             Route::put('/profile', [ApplicantProfileController::class, 'update'])->name('profile.update');
         });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Routes
+    |--------------------------------------------------------------------------
+    */
 
     Route::prefix('admin')
         ->name('admin.')
