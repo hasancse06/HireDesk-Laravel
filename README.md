@@ -175,7 +175,7 @@ https://hiredesk-laravel.test
 ## 🙌 Author
 
 **M A Hasan**  
-- 🔭 Full-Stack Web Developer | Laravel, WordPress, WooCommerce Ionic Framework with Angular & REST APIs
+- 🔭 Full-Stack Web Developer | Laravel, WordPress, WooCommerce, Ionic Framework with Angular & REST APIs
 - 🌐 About Me [https://hasan.online](https://hasan.online)
 - 🎓 Instructor on [Udemy](https://www.udemy.com/user/m-a-hasan-2/)
 - 🧠 Creator at [Envato](https://themeforest.net/user/hasanonline)
@@ -186,5 +186,5 @@ https://hiredesk-laravel.test
 
 If you find this useful:
 - ⭐ Star the repository on GitHub
-- 🔗 Share it with fellow Laravel, Ionic + Angular, WordPress, WooCommerce, or mobile app developers
+- 🔗 Share it with fellow Laravel, Ionic + Angular, WordPress, WooCommerce and Mobile App Developers
 - 💡 Contribute with feedback or pull requests
