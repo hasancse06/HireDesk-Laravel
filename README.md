@@ -50,54 +50,386 @@ This makes the project useful for learning, client work, open-source collaborati
 
 ---
 
-## 🛡️ Phase 3 — Role and Permission Management
+## 👥 Phase 4 — Employer and Applicant Profiles
 
-Phase 3 adds a professional role and permission management system to HireDesk Laravel using **Spatie Laravel Permission**.
+Phase 4 adds role-specific profile management for employers and applicants.
 
-This phase introduces role-based access control, permission-based feature planning, admin user management, role management, permission management, and protected admin routes. It prepares the project for future employer/applicant workflows, job posting permissions, application review permissions, and admin-level platform control.
+This phase improves the registration and dashboard experience by creating dedicated profile records for each user type. Employers now have company profiles, applicants now have professional profiles, and dashboards can display profile completion progress based on the logged-in user’s role.
 
 ---
 
 ## ✅ Completed Features
 
-- Spatie Laravel Permission integration
-- Role management
-- Permission management
-- Assign roles to users
-- Admin user management
-- Role-based dashboard access
-- Role-protected admin routes
-- Role-based sidebar menu visibility
-- AdminLTE user management UI
-- AdminLTE role management UI
-- AdminLTE permission management UI
-- Demo users seeded with roles
-- Demo permissions seeded
-- Permission cache reset support
-- User model updated with `HasRoles`
-- Registration now assigns Spatie roles automatically
+- Register as Employer
+- Register as Applicant
+- Employer profile table
+- Applicant profile table
+- Automatic employer profile creation after registration
+- Automatic applicant profile creation after registration
+- Employer profile edit page
+- Applicant profile edit page
+- Profile completion percentage
+- Profile-specific dashboard card
+- Role-specific profile routes
+- Role-specific sidebar profile links
+- Profile-specific dashboard data
+- Seeded demo employer profile
+- Seeded demo applicant profile
 
 ---
 
-## 📦 Package Used
+## 🧑‍💼 Employer Profile
 
-This phase uses:
+Employers can manage company and hiring-related details.
+
+### Employer Profile Fields
+
+| Field | Description |
+|---|---|
+| `company_name` | Employer/company name |
+| `company_website` | Company website URL |
+| `company_logo` | Placeholder field for future logo upload |
+| `company_size` | Number of employees |
+| `industry` | Business industry/category |
+| `location` | Company location or remote location |
+| `remote_friendly` | Indicates if the company supports remote work |
+| `company_description` | Short company overview |
+
+### Employer Profile Route
 
 ```txt
-spatie/laravel-permission
+/employer/profile
 ```
 
-Install command:
+Only users with the `employer` role can access this route.
 
-```bash
-composer require spatie/laravel-permission
+---
+
+## 👨‍💻 Applicant Profile
+
+Applicants can manage their professional job-seeker profile.
+
+### Applicant Profile Fields
+
+| Field | Description |
+|---|---|
+| `headline` | Professional title or headline |
+| `phone` | Contact phone number |
+| `location` | Applicant location |
+| `experience_level` | Entry, Junior, Mid, Senior, Lead, etc. |
+| `expected_salary` | Expected salary or compensation note |
+| `portfolio_url` | Personal portfolio link |
+| `linkedin_url` | LinkedIn profile link |
+| `github_url` | GitHub profile link |
+| `resume_path` | Placeholder field for future resume upload |
+| `skills` | Applicant skills, currently stored as text |
+| `bio` | Professional summary |
+
+### Applicant Profile Route
+
+```txt
+/applicant/profile
 ```
 
-Publish package config and migrations:
+Only users with the `applicant` role can access this route.
 
-```bash
-php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
+---
+
+## 🗄️ Database Tables Added
+
+Phase 4 adds two new profile tables.
+
+```txt
+employer_profiles
+applicant_profiles
 ```
+
+### `employer_profiles`
+
+```txt
+id
+user_id
+company_name
+company_website
+company_logo
+company_size
+industry
+location
+remote_friendly
+company_description
+created_at
+updated_at
+```
+
+### `applicant_profiles`
+
+```txt
+id
+user_id
+headline
+phone
+location
+experience_level
+expected_salary
+portfolio_url
+linkedin_url
+github_url
+resume_path
+skills
+bio
+created_at
+updated_at
+```
+
+Each profile table has a unique `user_id`, so each user can only have one role-specific profile.
+
+---
+
+## 🔗 Model Relationships
+
+### User Model
+
+The `User` model now supports employer and applicant profile relationships.
+
+```php
+public function employerProfile(): HasOne
+{
+    return $this->hasOne(EmployerProfile::class);
+}
+
+public function applicantProfile(): HasOne
+{
+    return $this->hasOne(ApplicantProfile::class);
+}
+```
+
+### EmployerProfile Model
+
+```php
+public function user(): BelongsTo
+{
+    return $this->belongsTo(User::class);
+}
+```
+
+### ApplicantProfile Model
+
+```php
+public function user(): BelongsTo
+{
+    return $this->belongsTo(User::class);
+}
+```
+
+---
+
+## 📊 Profile Completion
+
+Both employer and applicant profiles include a simple profile completion calculation.
+
+Example:
+
+```php
+public function completionPercentage(): int
+{
+    $fields = [
+        'company_name',
+        'company_website',
+        'company_size',
+        'industry',
+        'location',
+        'company_description',
+    ];
+
+    $completed = collect($fields)
+        ->filter(fn ($field) => filled($this->{$field}))
+        ->count();
+
+    return (int) round(($completed / count($fields)) * 100);
+}
+```
+
+The dashboard displays a profile completion card for employer and applicant users.
+
+---
+
+## 🧭 Profile Routes
+
+Phase 4 adds role-protected profile routes.
+
+| Method | URL | Name | Role |
+|---|---|---|---|
+| GET | `/employer/profile` | `employer.profile.edit` | employer |
+| PUT | `/employer/profile` | `employer.profile.update` | employer |
+| GET | `/applicant/profile` | `applicant.profile.edit` | applicant |
+| PUT | `/applicant/profile` | `applicant.profile.update` | applicant |
+
+---
+
+## 🧱 Role-Based Access
+
+Profile routes are protected using Spatie role middleware.
+
+```php
+Route::prefix('employer')
+    ->name('employer.')
+    ->middleware('role:employer')
+    ->group(function () {
+        Route::get('/profile', [EmployerProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile', [EmployerProfileController::class, 'update'])->name('profile.update');
+    });
+
+Route::prefix('applicant')
+    ->name('applicant.')
+    ->middleware('role:applicant')
+    ->group(function () {
+        Route::get('/profile', [ApplicantProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile', [ApplicantProfileController::class, 'update'])->name('profile.update');
+    });
+```
+
+Expected behavior:
+
+```txt
+Employer users can access employer profile routes.
+Applicant users can access applicant profile routes.
+Employer users cannot access applicant profile routes.
+Applicant users cannot access employer profile routes.
+Admin users manage the platform but do not use employer/applicant profile routes by default.
+```
+
+---
+
+## 🧭 Dashboard Controller
+
+Phase 4 introduces a dedicated dashboard controller.
+
+```txt
+app/Http/Controllers/DashboardController.php
+```
+
+The dashboard now detects the authenticated user’s role and returns dashboard-specific data.
+
+Dashboard types:
+
+```txt
+admin
+employer
+applicant
+```
+
+Example behavior:
+
+```txt
+Super Admin/Admin → Admin dashboard
+Employer → Employer dashboard with company profile completion
+Applicant → Applicant dashboard with professional profile completion
+```
+
+---
+
+## 📝 Registration Profile Creation
+
+When a user registers, the system automatically creates the correct profile type.
+
+### Employer Registration
+
+```php
+if ($validated['role'] === 'employer') {
+    $user->employerProfile()->create([
+        'company_name' => $validated['name'],
+        'remote_friendly' => true,
+    ]);
+}
+```
+
+### Applicant Registration
+
+```php
+if ($validated['role'] === 'applicant') {
+    $user->applicantProfile()->create([
+        'headline' => 'New Applicant',
+    ]);
+}
+```
+
+This ensures every employer and applicant starts with a profile immediately after registration.
+
+---
+
+## 📁 Files Added in Phase 4
+
+### Models
+
+```txt
+app/Models/EmployerProfile.php
+app/Models/ApplicantProfile.php
+```
+
+### Controllers
+
+```txt
+app/Http/Controllers/DashboardController.php
+app/Http/Controllers/Employer/ProfileController.php
+app/Http/Controllers/Applicant/ProfileController.php
+```
+
+### Views
+
+```txt
+resources/views/employer/profile/edit.blade.php
+resources/views/applicant/profile/edit.blade.php
+```
+
+### Migrations
+
+```txt
+database/migrations/xxxx_xx_xx_xxxxxx_create_employer_profiles_table.php
+database/migrations/xxxx_xx_xx_xxxxxx_create_applicant_profiles_table.php
+```
+
+---
+
+## 📝 Files Updated in Phase 4
+
+```txt
+app/Models/User.php
+app/Http/Controllers/Auth/RegisterController.php
+database/seeders/RolePermissionSeeder.php
+routes/web.php
+resources/views/dashboard/index.blade.php
+resources/views/partials/sidebar.blade.php
+```
+
+---
+
+## 👤 Demo Profile Data
+
+Phase 4 updates the demo employer and applicant users with profile records.
+
+### Demo Employer
+
+```txt
+Email: employer@hiredesk.test
+Password: password
+Company: Remote Tech Inc.
+Industry: Software Development
+Location: Remote
+```
+
+### Demo Applicant
+
+```txt
+Email: applicant@hiredesk.test
+Password: password
+Headline: Laravel Developer
+Skills: Laravel, PHP, MySQL, REST API, Blade, AdminLTE
+Location: Remote
+```
+
+---
+
+## 🧪 Testing Phase 4
 
 Run migrations:
 
@@ -105,280 +437,36 @@ Run migrations:
 php artisan migrate
 ```
 
-Reset permission cache:
+Seed demo profile data:
 
 ```bash
-php artisan permission:cache-reset
+php artisan db:seed --class=RolePermissionSeeder
+```
+
+Clear cache:
+
+```bash
+php artisan optimize:clear
+```
+
+Check profile routes:
+
+```bash
+php artisan route:list | grep profile
+```
+
+Expected profile routes:
+
+```txt
+GET|HEAD  employer/profile
+PUT       employer/profile
+GET|HEAD  applicant/profile
+PUT       applicant/profile
 ```
 
 ---
 
-## 👥 System Roles
-
-The following roles are created by default:
-
-| Role | Description |
-|---|---|
-| `super_admin` | Full access to all platform features |
-| `admin` | Can manage users, roles, permissions, jobs, and applications |
-| `employer` | Can access employer dashboard and manage jobs/applications in future phases |
-| `applicant` | Can access applicant dashboard and apply to jobs in future phases |
-
----
-
-## 🔑 System Permissions
-
-The following permissions are seeded by default:
-
-| Permission | Description |
-|---|---|
-| `manage_users` | Allows managing platform users |
-| `manage_roles` | Allows managing user roles |
-| `manage_permissions` | Allows managing permissions |
-| `view_admin_dashboard` | Allows access to admin dashboard features |
-| `view_employer_dashboard` | Allows access to employer dashboard features |
-| `view_applicant_dashboard` | Allows access to applicant dashboard features |
-| `manage_jobs` | Allows managing job posts |
-| `manage_applications` | Allows managing job applications |
-
----
-
-## 👤 Demo Users
-
-Phase 3 includes seeded demo users for testing role-based access.
-
-| Role | Email | Password |
-|---|---|---|
-| Super Admin | `admin@hiredesk.test` | `password` |
-| Employer | `employer@hiredesk.test` | `password` |
-| Applicant | `applicant@hiredesk.test` | `password` |
-
----
-
-## 🧭 Admin Routes
-
-Admin routes are protected by role middleware.
-
-Only users with the following roles can access admin management routes:
-
-```txt
-super_admin
-admin
-```
-
-### Available Admin Routes
-
-| Method | URL | Description |
-|---|---|---|
-| GET | `/admin/users` | List users |
-| GET | `/admin/users/{user}/edit` | Edit user and assigned role |
-| PUT/PATCH | `/admin/users/{user}` | Update user and role |
-| DELETE | `/admin/users/{user}` | Delete user |
-| GET | `/admin/roles` | List roles |
-| GET | `/admin/roles/create` | Create role form |
-| POST | `/admin/roles` | Store new role |
-| GET | `/admin/roles/{role}/edit` | Edit role and permissions |
-| PUT/PATCH | `/admin/roles/{role}` | Update role and permissions |
-| DELETE | `/admin/roles/{role}` | Delete role |
-| GET | `/admin/permissions` | List permissions |
-| GET | `/admin/permissions/create` | Create permission form |
-| POST | `/admin/permissions` | Store new permission |
-| GET | `/admin/permissions/{permission}/edit` | Edit permission |
-| PUT/PATCH | `/admin/permissions/{permission}` | Update permission |
-| DELETE | `/admin/permissions/{permission}` | Delete permission |
-
----
-
-## 🧱 Middleware
-
-Spatie middleware aliases are registered in:
-
-```txt
-bootstrap/app.php
-```
-
-Middleware aliases:
-
-```php
-'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
-'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
-'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
-```
-
-Example route protection:
-
-```php
-Route::prefix('admin')
-    ->name('admin.')
-    ->middleware('role:super_admin|admin')
-    ->group(function () {
-        Route::resource('users', UserController::class)->only([
-            'index',
-            'edit',
-            'update',
-            'destroy',
-        ]);
-
-        Route::resource('roles', RoleController::class);
-        Route::resource('permissions', PermissionController::class);
-    });
-```
-
----
-
-## 🧩 User Model Role Support
-
-The `User` model now uses Spatie's `HasRoles` trait:
-
-```php
-use Spatie\Permission\Traits\HasRoles;
-```
-
-```php
-class User extends Authenticatable
-{
-    use HasFactory, Notifiable, HasRoles;
-}
-```
-
-Helper methods were added for cleaner role checks:
-
-```php
-public function primaryRoleName(): string
-{
-    return $this->roles()->first()?->name ?? $this->role ?? 'applicant';
-}
-
-public function isSuperAdmin(): bool
-{
-    return $this->hasRole('super_admin');
-}
-
-public function isAdmin(): bool
-{
-    return $this->hasAnyRole(['super_admin', 'admin']);
-}
-
-public function isEmployer(): bool
-{
-    return $this->hasRole('employer') || $this->role === 'employer';
-}
-
-public function isApplicant(): bool
-{
-    return $this->hasRole('applicant') || $this->role === 'applicant';
-}
-```
-
----
-
-## 📝 Registration Role Assignment
-
-When a new user registers as an `employer` or `applicant`, the selected role is now assigned through Spatie Permission.
-
-Example:
-
-```php
-$user = User::create($validated);
-
-$user->assignRole($validated['role']);
-```
-
-This keeps the simple `role` column and Spatie role system aligned during registration.
-
----
-
-## 📁 Files Added in Phase 3
-
-### Controllers
-
-```txt
-app/Http/Controllers/Admin/UserController.php
-app/Http/Controllers/Admin/RoleController.php
-app/Http/Controllers/Admin/PermissionController.php
-```
-
-### Seeders
-
-```txt
-database/seeders/RolePermissionSeeder.php
-```
-
-### Views
-
-```txt
-resources/views/admin/users/index.blade.php
-resources/views/admin/users/edit.blade.php
-
-resources/views/admin/roles/index.blade.php
-resources/views/admin/roles/create.blade.php
-resources/views/admin/roles/edit.blade.php
-
-resources/views/admin/permissions/index.blade.php
-resources/views/admin/permissions/create.blade.php
-resources/views/admin/permissions/edit.blade.php
-
-resources/views/partials/alerts.blade.php
-```
-
-### Updated Files
-
-```txt
-app/Models/User.php
-app/Http/Controllers/Auth/RegisterController.php
-bootstrap/app.php
-database/seeders/DatabaseSeeder.php
-routes/web.php
-resources/views/layouts/admin.blade.php
-resources/views/partials/sidebar.blade.php
-resources/views/dashboard/index.blade.php
-```
-
----
-
-## 🗄️ Database Tables Added by Spatie
-
-Spatie Laravel Permission adds the following tables:
-
-```txt
-permissions
-roles
-model_has_permissions
-model_has_roles
-role_has_permissions
-```
-
-These tables power the role and permission management system.
-
----
-
-## 🧪 Testing Phase 3
-
-After running migrations and seeders, test using the seeded users.
-
-### Super Admin Test
-
-Login with:
-
-```txt
-Email: admin@hiredesk.test
-Password: password
-```
-
-Confirm access to:
-
-```txt
-/dashboard
-/admin/users
-/admin/roles
-/admin/permissions
-```
-
-Expected result:
-
-```txt
-Super Admin can access all admin management pages.
-```
+## ✅ Manual Testing Checklist
 
 ### Employer Test
 
@@ -389,24 +477,21 @@ Email: employer@hiredesk.test
 Password: password
 ```
 
-Confirm access to:
+Test:
 
 ```txt
 /dashboard
-```
-
-Confirm restricted access to:
-
-```txt
-/admin/users
-/admin/roles
-/admin/permissions
+/employer/profile
 ```
 
 Expected result:
 
 ```txt
-Employer can access dashboard but cannot access admin management pages.
+Employer can access dashboard.
+Employer can access company profile page.
+Employer can update company details.
+Employer sees profile completion card on dashboard.
+Employer cannot access /applicant/profile.
 ```
 
 ### Applicant Test
@@ -418,15 +503,36 @@ Email: applicant@hiredesk.test
 Password: password
 ```
 
-Confirm access to:
+Test:
 
 ```txt
 /dashboard
+/applicant/profile
 ```
 
-Confirm restricted access to:
+Expected result:
 
 ```txt
+Applicant can access dashboard.
+Applicant can access professional profile page.
+Applicant can update professional details.
+Applicant sees profile completion card on dashboard.
+Applicant cannot access /employer/profile.
+```
+
+### Admin Test
+
+Login with:
+
+```txt
+Email: admin@hiredesk.test
+Password: password
+```
+
+Test:
+
+```txt
+/dashboard
 /admin/users
 /admin/roles
 /admin/permissions
@@ -435,23 +541,32 @@ Confirm restricted access to:
 Expected result:
 
 ```txt
-Applicant can access dashboard but cannot access admin management pages.
+Admin can access dashboard and admin management pages.
+Admin profile-specific employer/applicant card is not shown by default.
 ```
 
 ---
 
 ## 🧰 Useful Commands
 
-Install Spatie Laravel Permission:
+Create models and migrations:
 
 ```bash
-composer require spatie/laravel-permission
+php artisan make:model EmployerProfile -m
+php artisan make:model ApplicantProfile -m
 ```
 
-Publish Spatie config and migrations:
+Create dashboard controller:
 
 ```bash
-php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
+php artisan make:controller DashboardController
+```
+
+Create profile controllers:
+
+```bash
+php artisan make:controller Employer/ProfileController
+php artisan make:controller Applicant/ProfileController
 ```
 
 Run migrations:
@@ -460,19 +575,13 @@ Run migrations:
 php artisan migrate
 ```
 
-Run role and permission seeder:
+Seed demo data:
 
 ```bash
 php artisan db:seed --class=RolePermissionSeeder
 ```
 
-Reset permission cache:
-
-```bash
-php artisan permission:cache-reset
-```
-
-Clear Laravel cache:
+Clear cache:
 
 ```bash
 php artisan optimize:clear
@@ -484,31 +593,30 @@ Check routes:
 php artisan route:list
 ```
 
-Check admin routes only:
+Check profile routes:
 
 ```bash
-php artisan route:list | grep admin
+php artisan route:list | grep profile
 ```
 
 ---
 
-## ✅ Phase 3 Status
+## ✅ Phase 4 Status
 
-Phase 3 is completed with:
+Phase 4 is completed with:
 
-- Role-based access control
-- Permission-based structure
-- Admin user management
-- Role CRUD
-- Permission CRUD
-- Spatie Laravel Permission integration
-- Role-protected admin routes
-- Role-aware dashboard access
-- AdminLTE-compatible management screens
-
----
+- Employer profile system
+- Applicant profile system
+- Automatic profile creation after registration
+- Profile completion calculation
+- Role-specific profile routes
+- Role-specific sidebar links
+- Role-specific dashboard data
+- AdminLTE-compatible profile edit pages
+- Seeded demo employer and applicant profiles
 
 ---
+
 
 ## 🖥️ Current Tech Stack
 

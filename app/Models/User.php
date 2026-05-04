@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Authenticatable
 {
@@ -54,5 +55,41 @@ class User extends Authenticatable
     public function isApplicant(): bool
     {
         return $this->hasRole('applicant') || $this->role === 'applicant';
+    }
+
+    public function employerProfile(): HasOne
+    {
+        return $this->hasOne(EmployerProfile::class);
+    }
+
+    public function applicantProfile(): HasOne
+    {
+        return $this->hasOne(ApplicantProfile::class);
+    }
+
+    public function profileCompletionPercentage(): int
+    {
+        if ($this->isEmployer()) {
+            return $this->employerProfile?->completionPercentage() ?? 0;
+        }
+
+        if ($this->isApplicant()) {
+            return $this->applicantProfile?->completionPercentage() ?? 0;
+        }
+
+        return 100;
+    }
+
+    public function profileEditRoute(): string
+    {
+        if ($this->isEmployer()) {
+            return route('employer.profile.edit');
+        }
+
+        if ($this->isApplicant()) {
+            return route('applicant.profile.edit');
+        }
+
+        return route('dashboard');
     }
 }

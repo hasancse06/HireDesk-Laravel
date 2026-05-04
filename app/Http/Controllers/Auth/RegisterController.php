@@ -30,12 +30,25 @@ class RegisterController extends Controller
 
         $user->assignRole($validated['role']);
 
+        if ($validated['role'] === 'employer') {
+            $user->employerProfile()->create([
+                'company_name' => $validated['name'],
+                'remote_friendly' => true,
+            ]);
+        }
+
+        if ($validated['role'] === 'applicant') {
+            $user->applicantProfile()->create([
+                'headline' => 'New Applicant',
+            ]);
+        }
+
         Auth::login($user);
 
         $request->session()->regenerate();
 
         return redirect()
             ->route('dashboard')
-            ->with('status', 'Your account has been created successfully.');
+            ->with('success', 'Your account has been created successfully. Please complete your profile.');
     }
 }

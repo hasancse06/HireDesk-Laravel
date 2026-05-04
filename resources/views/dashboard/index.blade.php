@@ -27,7 +27,6 @@
 
 @section('content')
     <div class="row">
-
         <div class="col-lg-3 col-6">
             <div class="small-box bg-info">
                 <div class="inner">
@@ -95,12 +94,50 @@
                 </a>
             </div>
         </div>
-
     </div>
+
+    @if (in_array($dashboardType ?? null, ['employer', 'applicant'], true))
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-id-card mr-1"></i>
+                            Complete Your Profile
+                        </h3>
+                    </div>
+
+                    <div class="card-body">
+                        <p class="mb-2">
+                            Your {{ $dashboardType }} profile is
+                            <strong>{{ $profileCompletion ?? 0 }}%</strong>
+                            complete.
+                        </p>
+
+                        <div class="progress mb-3">
+                            <div class="progress-bar"
+                                role="progressbar"
+                                style="width: {{ $profileCompletion ?? 0 }}%;"
+                                aria-valuenow="{{ $profileCompletion ?? 0 }}"
+                                aria-valuemin="0"
+                                aria-valuemax="100">
+                                {{ $profileCompletion ?? 0 }}%
+                            </div>
+                        </div>
+
+                        <a href="{{ $profileEditUrl ?? '#' }}" class="btn btn-primary">
+                            <i class="fas fa-user-edit mr-1"></i>
+                            Update Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <div class="row">
 
-        <div class="col-lg-8">
+        <div class="col-lg-12">
             <div class="card">
                 <div class="card-header border-0">
                     <h3 class="card-title">Recent Jobs</h3>
@@ -167,69 +204,5 @@
                 </div>
             </div>
         </div>
-
-        <div class="col-lg-4">
-            <div class="card card-primary card-outline">
-                <div class="card-header">
-                    <h3 class="card-title">Phase 1 Checklist</h3>
-                </div>
-
-                <div class="card-body">
-                    <ul class="todo-list" data-widget="todo-list">
-                        <li>
-                            <span class="handle">
-                                <i class="fas fa-check text-success"></i>
-                            </span>
-                            <span class="text">Laravel project created</span>
-                        </li>
-
-                        <li>
-                            <span class="handle">
-                                <i class="fas fa-check text-success"></i>
-                            </span>
-                            <span class="text">AdminLTE 3.2.0 integrated</span>
-                        </li>
-
-                        <li>
-                            <span class="handle">
-                                <i class="fas fa-check text-success"></i>
-                            </span>
-                            <span class="text">Reusable Blade layout added</span>
-                        </li>
-
-                        <li>
-                            <span class="handle">
-                                <i class="fas fa-check text-success"></i>
-                            </span>
-                            <span class="text">Dashboard page created</span>
-                        </li>
-
-                        <li>
-                            <span class="handle">
-                                <i class="fas fa-check text-success"></i>
-                            </span>
-                            <span class="text">No Vite dependency used</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="card card-dark">
-                <div class="card-header">
-                    <h3 class="card-title">Next Phase</h3>
-                </div>
-
-                <div class="card-body">
-                    <p class="mb-2">
-                        Phase 2 will add authentication, login, registration, logout, and protected dashboard access.
-                    </p>
-
-                    <a href="#" class="btn btn-dark btn-block disabled">
-                        Phase 2 Coming Next
-                    </a>
-                </div>
-            </div>
-        </div>
-
     </div>
 @endsection

@@ -56,6 +56,31 @@
                     </a>
                 </li>
 
+                @role('employer')
+                    <li class="nav-header">EMPLOYER</li>
+
+                    <li class="nav-item">
+                        <a href="{{ route('employer.profile.edit') }}"
+                        class="nav-link {{ request()->routeIs('employer.profile.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-building"></i>
+                            <p>Company Profile</p>
+                        </a>
+                    </li>
+                @endrole
+
+                @role('applicant')
+                    <li class="nav-header">APPLICANT</li>
+
+                    <li class="nav-item">
+                        <a href="{{ route('applicant.profile.edit') }}"
+                        class="nav-link {{ request()->routeIs('applicant.profile.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-user-tie"></i>
+                            <p>My Profile</p>
+                        </a>
+                    </li>
+                @endrole
+
+
                 <li class="nav-header">JOB BOARD</li>
 
                 <li class="nav-item">

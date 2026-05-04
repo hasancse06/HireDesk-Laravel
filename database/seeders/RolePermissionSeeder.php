@@ -95,6 +95,19 @@ class RolePermissionSeeder extends Seeder
 
         $employerUser->syncRoles(['employer']);
 
+        $employerUser->employerProfile()->updateOrCreate(
+            ['user_id' => $employerUser->id],
+            [
+                'company_name' => 'Remote Tech Inc.',
+                'company_website' => 'https://example.com',
+                'company_size' => '11-50',
+                'industry' => 'Software Development',
+                'location' => 'Remote',
+                'remote_friendly' => true,
+                'company_description' => 'Remote Tech Inc. is a demo company profile for testing the employer workflow in HireDesk Laravel.',
+            ]
+        );
+
         $applicantUser = User::firstOrCreate(
             ['email' => 'applicant@hiredesk.test'],
             [
@@ -105,5 +118,20 @@ class RolePermissionSeeder extends Seeder
         );
 
         $applicantUser->syncRoles(['applicant']);
+
+        $applicantUser->applicantProfile()->updateOrCreate(
+            ['user_id' => $applicantUser->id],
+            [
+                'headline' => 'Laravel Developer',
+                'phone' => '+1 555 123 4567',
+                'location' => 'Remote',
+                'experience_level' => 'Mid Level',
+                'expected_salary' => 'Negotiable',
+                'portfolio_url' => 'https://hasan.online',
+                'github_url' => 'https://github.com/hasancse06',
+                'skills' => 'Laravel, PHP, MySQL, REST API, Blade, AdminLTE',
+                'bio' => 'Demo applicant profile for testing the applicant workflow in HireDesk Laravel.',
+            ]
+        );
     }
 }

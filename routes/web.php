@@ -3,10 +3,13 @@
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Applicant\ProfileController as ApplicantProfileController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Employer\ProfileController as EmployerProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -28,27 +31,25 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', function () {
-        $user = auth()->user();
-
-        if ($user->hasAnyRole(['super_admin', 'admin'])) {
-            return view('dashboard.index', [
-                'dashboardType' => 'admin',
-            ]);
-        }
-
-        if ($user->hasRole('employer')) {
-            return view('dashboard.index', [
-                'dashboardType' => 'employer',
-            ]);
-        }
-
-        return view('dashboard.index', [
-            'dashboardType' => 'applicant',
-        ]);
-    })->name('dashboard');
+    Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+
+    Route::prefix('employer')
+        ->name('employer.')
+        ->middleware('role:employer')
+        ->group(function () {
+            Route::get('/profile', [EmployerProfileController::class, 'edit'])->name('profile.edit');
+            Route::put('/profile', [EmployerProfileController::class, 'update'])->name('profile.update');
+        });
+
+    Route::prefix('applicant')
+        ->name('applicant.')
+        ->middleware('role:applicant')
+        ->group(function () {
+            Route::get('/profile', [ApplicantProfileController::class, 'edit'])->name('profile.edit');
+            Route::put('/profile', [ApplicantProfileController::class, 'update'])->name('profile.update');
+        });
 
     Route::prefix('admin')
         ->name('admin.')
