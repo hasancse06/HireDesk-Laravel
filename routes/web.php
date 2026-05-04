@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Employer\JobPostController as EmployerJobPostController;
 use App\Http\Controllers\Employer\ProfileController as EmployerProfileController;
@@ -16,13 +17,17 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| Public Routes
 |--------------------------------------------------------------------------
 */
 
 Route::get('/', function () {
-    return redirect()->route('dashboard');
+    return redirect()->route('jobs.index');
 });
+
+Route::get('/jobs', [JobBoardController::class, 'index'])->name('jobs.index');
+Route::get('/jobs/{job:slug}', [JobBoardController::class, 'show'])->name('jobs.show');
+Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
 
 /*
 |--------------------------------------------------------------------------
@@ -54,19 +59,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Job Board Routes
-    |--------------------------------------------------------------------------
-    |
-    | Authenticated users can browse published jobs.
-    | In the next phase, these can be moved outside auth to become public.
-    |
-    */
-
-    Route::get('/jobs', [JobBoardController::class, 'index'])->name('jobs.index');
-    Route::get('/jobs/{job:slug}', [JobBoardController::class, 'show'])->name('jobs.show');
 
     /*
     |--------------------------------------------------------------------------

@@ -1,175 +1,211 @@
-@extends('layouts.admin')
+@extends('layouts.public')
 
-@section('title', $job->title . ' | HireDesk Laravel')
-
-@section('content_header')
-    <div class="row mb-2">
-        <div class="col-sm-8">
-            <h1>{{ $job->title }}</h1>
-            <p class="text-muted mb-0">
-                {{ $job->company_name }} — {{ $job->location ?? 'Remote' }}
-            </p>
-        </div>
-
-        <div class="col-sm-4">
-            <ol class="breadcrumb float-sm-right">
-                <li class="breadcrumb-item">
-                    <a href="{{ route('dashboard') }}">Home</a>
-                </li>
-                <li class="breadcrumb-item">
-                    <a href="{{ route('jobs.index') }}">Jobs</a>
-                </li>
-                <li class="breadcrumb-item active">Details</li>
-            </ol>
-        </div>
-    </div>
-@endsection
+@section('title', $job->title . ' at ' . $job->company_name . ' | HireDesk Laravel')
+@section('meta_description', str($job->description)->limit(150))
 
 @section('content')
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">{{ $job->title }}</h3>
+    <section class="job-details-hero">
+        <div class="public-container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="public-hero-kicker">
+                        <i class="fas fa-briefcase"></i>
+                        {{ $job->workplaceTypeLabel() }} {{ $job->jobTypeLabel() }}
+                    </div>
+
+                    <h1>{{ $job->title }}</h1>
+
+                    <p class="mb-0">
+                        <i class="fas fa-building mr-1"></i>
+                        {{ $job->company_name }}
+
+                        <span class="mx-2">•</span>
+
+                        <i class="fas fa-map-marker-alt mr-1"></i>
+                        {{ $job->location ?? 'Remote' }}
+                    </p>
                 </div>
 
-                <div class="card-body">
-                    <div class="mb-3">
-                        <span class="badge badge-info">
+                <div class="col-lg-4 mt-4 mt-lg-0 text-lg-right">
+                    @auth
+                        @role('applicant')
+                            <a href="#" class="public-btn public-btn-primary">
+                                <i class="fas fa-paper-plane"></i>
+                                Apply Now
+                            </a>
+                        @else
+                            <a href="{{ route('dashboard') }}" class="public-btn public-btn-light">
+                                Go to Dashboard
+                            </a>
+                        @endrole
+                    @else
+                        <a href="{{ route('login') }}" class="public-btn public-btn-primary">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Login to Apply
+                        </a>
+                    @endauth
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="public-section">
+        <div class="public-container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="job-details-card mb-4">
+                        <div class="mb-4">
+                            <span class="hd-badge hd-badge-remote">
+                                <i class="fas fa-laptop-house"></i>
+                                {{ $job->workplaceTypeLabel() }}
+                            </span>
+
+                            <span class="hd-badge hd-badge-type">
+                                <i class="fas fa-clock"></i>
+                                {{ $job->jobTypeLabel() }}
+                            </span>
+
+                            <span class="hd-badge hd-badge-salary">
+                                <i class="fas fa-money-bill-wave"></i>
+                                {{ $job->salaryRange() }}
+                            </span>
+
+                            <span class="hd-badge hd-badge-deadline">
+                                <i class="fas fa-calendar-alt"></i>
+                                {{ $job->deadlineLabel() }}
+                            </span>
+                        </div>
+
+                        <h2>Job Description</h2>
+
+                        <div class="mt-3 mb-4">
+                            {!! nl2br(e($job->description)) !!}
+                        </div>
+
+                        @if ($job->skills_required)
+                            <hr>
+
+                            <h3>Skills Required</h3>
+
+                            <p class="job-skills">
+                                {{ $job->skills_required }}
+                            </p>
+                        @endif
+                    </div>
+
+                    @if ($relatedJobs->isNotEmpty())
+                        <div class="job-details-card">
+                            <h3 class="mb-3">Related Jobs</h3>
+
+                            @foreach ($relatedJobs as $relatedJob)
+                                <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+                                    <div>
+                                        <strong>
+                                            <a href="{{ route('jobs.show', $relatedJob) }}">
+                                                {{ $relatedJob->title }}
+                                            </a>
+                                        </strong>
+
+                                        <div class="text-muted small">
+                                            {{ $relatedJob->company_name }} · {{ $relatedJob->workplaceTypeLabel() }}
+                                        </div>
+                                    </div>
+
+                                    <a href="{{ route('jobs.show', $relatedJob) }}" class="btn btn-sm btn-outline-primary">
+                                        View
+                                    </a>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="job-details-card job-summary-card mb-4">
+                        <h3 class="mb-3">Job Summary</h3>
+
+                        <p>
+                            <strong><i class="fas fa-building mr-1"></i> Company</strong><br>
+                            <a href="{{ route('companies.show', str($job->company_name)->slug()) }}">
+                                {{ $job->company_name }}
+                            </a>
+                        </p>
+
+                        <p>
+                            <strong><i class="fas fa-map-marker-alt mr-1"></i> Location</strong><br>
+                            {{ $job->location ?? 'Remote' }}
+                        </p>
+
+                        <p>
+                            <strong><i class="fas fa-laptop-house mr-1"></i> Workplace</strong><br>
                             {{ $job->workplaceTypeLabel() }}
-                        </span>
+                        </p>
 
-                        <span class="badge badge-primary">
+                        <p>
+                            <strong><i class="fas fa-clock mr-1"></i> Job Type</strong><br>
                             {{ $job->jobTypeLabel() }}
-                        </span>
+                        </p>
 
-                        <span class="badge badge-success">
+                        <p>
+                            <strong><i class="fas fa-money-bill-wave mr-1"></i> Salary</strong><br>
                             {{ $job->salaryRange() }}
-                        </span>
+                        </p>
+
+                        <p>
+                            <strong><i class="fas fa-calendar-alt mr-1"></i> Deadline</strong><br>
+                            {{ $job->deadlineLabel() }}
+                        </p>
+
+                        <hr>
+
+                        @auth
+                            @role('applicant')
+                                <a href="#" class="public-btn public-btn-primary w-100 justify-content-center">
+                                    <i class="fas fa-paper-plane"></i>
+                                    Apply Now
+                                </a>
+                            @else
+                                <a href="{{ route('dashboard') }}" class="public-btn public-btn-primary w-100 justify-content-center">
+                                    Go to Dashboard
+                                </a>
+                            @endrole
+                        @else
+                            <a href="{{ route('login') }}" class="public-btn public-btn-primary w-100 justify-content-center">
+                                <i class="fas fa-sign-in-alt"></i>
+                                Login to Apply
+                            </a>
+                        @endauth
+
+                        <small class="text-muted d-block mt-3 text-center">
+                            Application workflow will be added in Phase 7.
+                        </small>
                     </div>
 
-                    <h5>Job Description</h5>
+                    @if ($job->employer?->employerProfile)
+                        <div class="job-details-card">
+                            <h3>About Company</h3>
 
-                    <div class="mb-4">
-                        {!! nl2br(e($job->description)) !!}
-                    </div>
+                            <p class="mb-1">
+                                <strong>{{ $job->employer->employerProfile->company_name }}</strong>
+                            </p>
 
-                    @if ($job->skills_required)
-                        <h5>Skills Required</h5>
+                            <p class="text-muted">
+                                {{ $job->employer->employerProfile->industry ?? 'Company' }}
+                            </p>
 
-                        <p>{{ $job->skills_required }}</p>
+                            @if ($job->employer->employerProfile->company_description)
+                                <p>
+                                    {{ $job->employer->employerProfile->company_description }}
+                                </p>
+                            @endif
+
+                            <a href="{{ route('companies.show', str($job->company_name)->slug()) }}" class="btn btn-outline-primary btn-block">
+                                View Company
+                            </a>
+                        </div>
                     @endif
                 </div>
             </div>
         </div>
-
-        <div class="col-lg-4">
-            <div class="card card-primary card-outline">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-info-circle mr-1"></i>
-                        Job Summary
-                    </h3>
-                </div>
-
-                <div class="card-body">
-                    <strong>
-                        <i class="fas fa-building mr-1"></i>
-                        Company
-                    </strong>
-
-                    <p class="text-muted">
-                        {{ $job->company_name }}
-                    </p>
-
-                    <hr>
-
-                    <strong>
-                        <i class="fas fa-map-marker-alt mr-1"></i>
-                        Location
-                    </strong>
-
-                    <p class="text-muted">
-                        {{ $job->location ?? 'Remote' }}
-                    </p>
-
-                    <hr>
-
-                    <strong>
-                        <i class="fas fa-laptop-house mr-1"></i>
-                        Workplace
-                    </strong>
-
-                    <p class="text-muted">
-                        {{ $job->workplaceTypeLabel() }}
-                    </p>
-
-                    <hr>
-
-                    <strong>
-                        <i class="fas fa-clock mr-1"></i>
-                        Job Type
-                    </strong>
-
-                    <p class="text-muted">
-                        {{ $job->jobTypeLabel() }}
-                    </p>
-
-                    <hr>
-
-                    <strong>
-                        <i class="fas fa-money-bill-wave mr-1"></i>
-                        Salary
-                    </strong>
-
-                    <p class="text-muted">
-                        {{ $job->salaryRange() }}
-                    </p>
-
-                    <hr>
-
-                    <strong>
-                        <i class="fas fa-calendar-alt mr-1"></i>
-                        Deadline
-                    </strong>
-
-                    <p class="text-muted">
-                        {{ $job->deadlineLabel() }}
-                    </p>
-
-                    <a href="#" class="btn btn-primary btn-block disabled">
-                        Apply Now
-                    </a>
-
-                    <small class="text-muted d-block mt-2 text-center">
-                        Application workflow will be added in Phase 7.
-                    </small>
-                </div>
-            </div>
-
-            @if ($job->employer?->employerProfile)
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">About Company</h3>
-                    </div>
-
-                    <div class="card-body">
-                        <p class="mb-1">
-                            <strong>{{ $job->employer->employerProfile->company_name }}</strong>
-                        </p>
-
-                        <p class="text-muted mb-2">
-                            {{ $job->employer->employerProfile->industry ?? 'Company' }}
-                        </p>
-
-                        @if ($job->employer->employerProfile->company_description)
-                            <p>
-                                {{ $job->employer->employerProfile->company_description }}
-                            </p>
-                        @endif
-                    </div>
-                </div>
-            @endif
-        </div>
-    </div>
+    </section>
 @endsection

@@ -50,379 +50,168 @@ This makes the project useful for learning, client work, open-source collaborati
 
 ---
 
-## 💼 Phase 5 — Job Posting System
 
-Phase 5 adds the core job posting system to HireDesk Laravel.
+## 🌐 Phase 6 — Public Job Board UI
 
-Employers can now create and manage job posts, while applicants can browse published jobs, search jobs, filter job listings, and view job details. This phase turns HireDesk Laravel from an authentication/profile-based dashboard into a functional job board foundation.
+Phase 6 adds a polished public-facing job board interface to HireDesk Laravel.
 
-> Note: Laravel already uses a default `jobs` table for queued jobs. To avoid conflict, this project uses a dedicated `job_posts` table for job board listings.
+Before this phase, job browsing used the internal AdminLTE dashboard layout. Phase 6 separates the public job board experience from the authenticated dashboard experience, making the project feel like a real job portal website.
+
+Guests, applicants, employers, and admins can now browse published jobs using a clean public UI, while employer/admin management features remain inside the dashboard.
 
 ---
 
 ## ✅ Completed Features
 
-- Job post database table
-- JobPost model
-- Employer job CRUD
-- Employers can create job posts
-- Employers can edit their own job posts
-- Employers can delete their own job posts
-- Employers can publish job posts
-- Employers can unpublish job posts
-- Employers can close job posts
-- Employers can see applications count placeholder
-- Applicants can browse published jobs
-- Applicants can search jobs
-- Applicants can filter jobs by workplace type, location, and job type
-- Applicants can view job details
-- Published-only job board listing
-- Draft and closed jobs hidden from applicant browse page
-- SEO-friendly job slug URLs
-- Dashboard job stats
-- AdminLTE-compatible job management UI
-- AdminLTE-compatible job browsing UI
+- Public job board layout
+- Public navigation/header
+- Public footer
+- Polished job listing page
+- Public hero section
+- Search and filter panel
+- Job cards with company logo placeholder
+- Company name links
+- Job type badges
+- Remote/on-site/hybrid badges
+- Salary badge
+- Deadline badge
+- Pagination
+- Public job details page
+- Public company profile page
+- Public company jobs listing
+- Guest users can browse published jobs
+- Guest users can view job details
+- Guest users can view company pages
+- Logged-in applicants see an Apply Now button placeholder
+- Guests see Login to Apply button
+- Employers/admins can return to dashboard
+- `/jobs`, `/jobs/{slug}`, and `/companies/{company}` are now public routes
 
 ---
 
-## 🧾 Job Fields
+## 🎯 Purpose of Phase 6
 
-Each job post includes the following fields:
+The goal of this phase is to make HireDesk Laravel look and feel like a real job board website.
 
-| Field | Description |
+This phase improves the user experience for:
+
+- Guests browsing jobs
+- Applicants searching for opportunities
+- Employers previewing published job posts
+- Developers using HireDesk Laravel as a job portal starter
+- Agencies or freelancers customizing it for client projects
+
+The project now has a clear separation between:
+
+```txt
+Public job board pages
+Authenticated dashboard pages
+Employer management pages
+Admin management pages
+```
+
+---
+
+## 🧭 Public Page Structure
+
+Phase 6 introduces these public-facing pages:
+
+| URL | Description |
 |---|---|
-| `title` | Job title |
-| `slug` | SEO-friendly unique job URL slug |
-| `user_id` | Employer user who created the job |
-| `company_name` | Company or employer name |
-| `location` | Job location |
-| `workplace_type` | Remote, On-site, or Hybrid |
-| `job_type` | Full-time, Part-time, or Contract |
-| `salary_currency` | Salary currency such as USD |
-| `salary_min` | Minimum salary |
-| `salary_max` | Maximum salary |
-| `skills_required` | Required skills for the job |
-| `description` | Full job description |
-| `status` | Draft, Published, or Closed |
-| `application_deadline` | Last date to apply |
-| `published_at` | Date/time when job was published |
-| `deleted_at` | Soft delete timestamp |
+| `/` | Redirects to the public job listing page |
+| `/jobs` | Public job listing page |
+| `/jobs/{slug}` | Public job details page |
+| `/companies/{company}` | Public company profile and open jobs page |
 
 ---
 
-## 🗄️ Database Table Added
+## 🖼️ Public Layout
 
-Phase 5 adds the following table:
-
-```txt
-job_posts
-```
-
-### `job_posts` Table Structure
+A new public layout was added:
 
 ```txt
-id
-user_id
-title
-slug
-company_name
-location
-workplace_type
-job_type
-salary_currency
-salary_min
-salary_max
-skills_required
-description
-status
-application_deadline
-published_at
-created_at
-updated_at
-deleted_at
+resources/views/layouts/public.blade.php
 ```
 
-### Job Status Values
+This layout includes:
+
+- Public navbar
+- HireDesk brand
+- Browse Jobs link
+- Login/register links for guests
+- Dashboard link for authenticated users
+- Public footer
+- Public CSS assets
+- Meta description support
+
+The public layout is separate from:
 
 ```txt
-draft
-published
-closed
+resources/views/layouts/admin.blade.php
+resources/views/layouts/auth.blade.php
 ```
 
-### Workplace Type Values
-
-```txt
-remote
-on_site
-hybrid
-```
-
-### Job Type Values
-
-```txt
-full_time
-part_time
-contract
-```
+This keeps the public website UI separate from the AdminLTE dashboard UI.
 
 ---
 
-## 🔗 Model Relationships
+## 🎨 Public CSS
 
-### User Model
-
-Employers can have many job posts.
-
-```php
-public function jobPosts(): HasMany
-{
-    return $this->hasMany(JobPost::class);
-}
-```
-
-### JobPost Model
-
-Each job post belongs to an employer user.
-
-```php
-public function employer(): BelongsTo
-{
-    return $this->belongsTo(User::class, 'user_id');
-}
-```
-
----
-
-## 🧠 JobPost Model Helpers
-
-The `JobPost` model includes helper methods for cleaner UI and business logic.
-
-```php
-public function isDraft(): bool
-{
-    return $this->status === 'draft';
-}
-
-public function isPublished(): bool
-{
-    return $this->status === 'published';
-}
-
-public function isClosed(): bool
-{
-    return $this->status === 'closed';
-}
-```
-
-### Publish / Unpublish / Close
-
-```php
-public function publish(): void
-{
-    $this->update([
-        'status' => 'published',
-        'published_at' => $this->published_at ?? now(),
-    ]);
-}
-
-public function unpublish(): void
-{
-    $this->update([
-        'status' => 'draft',
-    ]);
-}
-
-public function close(): void
-{
-    $this->update([
-        'status' => 'closed',
-    ]);
-}
-```
-
-### Published Scope
-
-Only published and non-expired jobs appear in the applicant job board.
-
-```php
-public function scopePublished(Builder $query): Builder
-{
-    return $query
-        ->where('status', 'published')
-        ->where(function (Builder $query) {
-            $query->whereNull('application_deadline')
-                ->orWhereDate('application_deadline', '>=', now()->toDateString());
-        });
-}
-```
-
-### Salary and Deadline Helpers
-
-```php
-public function salaryRange(): string
-{
-    if (! $this->salary_min && ! $this->salary_max) {
-        return 'Not specified';
-    }
-
-    if ($this->salary_min && $this->salary_max) {
-        return $this->salary_currency . ' ' . number_format((float) $this->salary_min) . ' - ' . number_format((float) $this->salary_max);
-    }
-
-    if ($this->salary_min) {
-        return 'From ' . $this->salary_currency . ' ' . number_format((float) $this->salary_min);
-    }
-
-    return 'Up to ' . $this->salary_currency . ' ' . number_format((float) $this->salary_max);
-}
-
-public function deadlineLabel(): string
-{
-    if (! $this->application_deadline) {
-        return 'Open until filled';
-    }
-
-    return \Carbon\Carbon::parse($this->application_deadline)->format('M d, Y');
-}
-```
-
----
-
-## 🧭 Job Routes
-
-Phase 5 adds employer job management routes and job board browsing routes.
-
-### Job Board Routes
-
-| Method | URL | Name | Description |
-|---|---|---|---|
-| GET | `/jobs` | `jobs.index` | Browse published jobs |
-| GET | `/jobs/{job:slug}` | `jobs.show` | View job details |
-
-### Employer Job Management Routes
-
-| Method | URL | Name | Description |
-|---|---|---|---|
-| GET | `/employer/jobs` | `employer.jobs.index` | Employer job list |
-| GET | `/employer/jobs/create` | `employer.jobs.create` | Create job form |
-| POST | `/employer/jobs` | `employer.jobs.store` | Store new job |
-| GET | `/employer/jobs/{job}/edit` | `employer.jobs.edit` | Edit job form |
-| PUT/PATCH | `/employer/jobs/{job}` | `employer.jobs.update` | Update job |
-| DELETE | `/employer/jobs/{job}` | `employer.jobs.destroy` | Delete job |
-| PATCH | `/employer/jobs/{job}/publish` | `employer.jobs.publish` | Publish job |
-| PATCH | `/employer/jobs/{job}/unpublish` | `employer.jobs.unpublish` | Move job back to draft |
-| PATCH | `/employer/jobs/{job}/close` | `employer.jobs.close` | Close job |
-
----
-
-## 🧱 Role-Based Access
-
-Employer job management routes are protected using Spatie role middleware.
-
-```php
-Route::prefix('employer')
-    ->name('employer.')
-    ->middleware('role:employer')
-    ->group(function () {
-        Route::resource('jobs', EmployerJobPostController::class)->except(['show']);
-
-        Route::patch('/jobs/{job}/publish', [EmployerJobPostController::class, 'publish'])
-            ->name('jobs.publish');
-
-        Route::patch('/jobs/{job}/unpublish', [EmployerJobPostController::class, 'unpublish'])
-            ->name('jobs.unpublish');
-
-        Route::patch('/jobs/{job}/close', [EmployerJobPostController::class, 'close'])
-            ->name('jobs.close');
-    });
-```
-
-Expected behavior:
+A new CSS file was added for the public job board design:
 
 ```txt
-Employer users can create, edit, delete, publish, unpublish, and close their own jobs.
-Employer users cannot edit jobs created by another employer.
-Applicant users can browse published jobs.
-Draft jobs are hidden from the applicant job board.
-Closed jobs are hidden from the applicant job board.
+public/assets/css/public.css
 ```
+
+It includes styling for:
+
+- Public navbar
+- Public hero section
+- Search panel
+- Job cards
+- Company logo placeholders
+- Badges
+- Job detail hero
+- Job summary cards
+- Company profile page
+- Public footer
+- Responsive mobile layout
 
 ---
 
-## 🧑‍💼 Employer Job Management
+## 🔎 Public Job Listing Page
 
-Employers can manage jobs from:
-
-```txt
-/employer/jobs
-```
-
-Employer actions:
-
-```txt
-Create job
-Edit job
-Delete job
-Publish job
-Unpublish job
-Close job
-View applications count placeholder
-```
-
-After creating or updating a job, the employer is redirected back to:
-
-```txt
-/employer/jobs
-```
-
-This allows the employer to quickly review the job list and manage post status.
-
----
-
-## 👨‍💻 Applicant Job Browsing
-
-Applicants can browse published jobs from:
+The public job listing page is available at:
 
 ```txt
 /jobs
 ```
 
-Available browsing features:
+It includes:
 
-```txt
-Search by job title
-Search by company name
-Search by skills
-Search by description
-Filter by location
-Filter by workplace type
-Filter by job type
-View job details
-```
+- Hero section
+- Published job count
+- Remote job count
+- Hiring company count
+- Search bar
+- Location filter
+- Workplace type filter
+- Job type filter
+- Job cards
+- Pagination
 
-Job details page:
+### Search and Filter Support
 
-```txt
-/jobs/{job-slug}
-```
-
-The application button is currently disabled because the application workflow will be added in a future phase.
-
----
-
-## 🔎 Search and Filter Support
-
-The job board supports filtering by:
+The job board supports the following query filters:
 
 | Filter | Query Parameter | Example |
 |---|---|---|
-| Search keyword | `search` | `/jobs?search=Laravel` |
+| Keyword search | `search` | `/jobs?search=Laravel` |
 | Location | `location` | `/jobs?location=Remote` |
 | Workplace type | `workplace_type` | `/jobs?workplace_type=remote` |
 | Job type | `job_type` | `/jobs?job_type=full_time` |
 
-Example combined filter:
+Example combined search:
 
 ```txt
 /jobs?search=Laravel&location=Remote&workplace_type=remote&job_type=full_time
@@ -430,168 +219,310 @@ Example combined filter:
 
 ---
 
-## 📊 Dashboard Job Stats
+## 🧾 Public Job Cards
 
-Phase 5 updates the dashboard with job-related statistics.
+Each job card displays:
 
-### Admin Dashboard Stats
+- Company logo placeholder
+- Job title
+- Company name
+- Company profile link
+- Location
+- Application deadline
+- Workplace type badge
+- Job type badge
+- Salary badge
+- Skills required
+- Posted date
+- View details button
 
-```txt
-Total jobs
-Published jobs
-Draft jobs
-Closed jobs
-```
-
-### Employer Dashboard Stats
-
-```txt
-My total jobs
-My published jobs
-My draft jobs
-My closed jobs
-```
-
-### Applicant Dashboard Stats
+Example badge types:
 
 ```txt
-Published jobs available
+Remote
+On-site
+Hybrid
+Full-time
+Part-time
+Contract
+Salary range
+Application deadline
 ```
 
 ---
 
-## 📁 Files Added in Phase 5
+## 📄 Public Job Details Page
 
-### Model
+The public job details page is available at:
 
 ```txt
-app/Models/JobPost.php
+/jobs/{job-slug}
 ```
 
-### Controllers
+It includes:
+
+- Job title
+- Company name
+- Location
+- Workplace type
+- Job type
+- Salary range
+- Application deadline
+- Full job description
+- Skills required
+- Job summary card
+- About company card
+- Related jobs section
+- Apply button placeholder
+
+### Apply Button Behavior
+
+In Phase 6, the apply button is only a placeholder because the application workflow will be added in Phase 7.
+
+Current behavior:
 
 ```txt
-app/Http/Controllers/Employer/JobPostController.php
+Guest user → Login to Apply button
+Applicant user → Apply Now button placeholder
+Employer/Admin user → Go to Dashboard button
+```
+
+---
+
+## 🏢 Public Company Page
+
+A new company profile page was added:
+
+```txt
+/companies/{company}
+```
+
+Example:
+
+```txt
+/companies/remote-tech-inc
+```
+
+The company page includes:
+
+- Company name
+- Company logo placeholder
+- Industry
+- Location
+- Remote-friendly status
+- Company website link
+- Company overview
+- Company size
+- Open published jobs from that company
+
+Only published and active jobs are shown on the company page.
+
+---
+
+## 🧱 Public Route Changes
+
+In previous phases, `/jobs` was inside the authenticated route group.
+
+In Phase 6, job browsing routes were moved outside the `auth` middleware so guests can browse jobs.
+
+### Public Routes
+
+```php
+Route::get('/', function () {
+    return redirect()->route('jobs.index');
+});
+
+Route::get('/jobs', [JobBoardController::class, 'index'])->name('jobs.index');
+Route::get('/jobs/{job:slug}', [JobBoardController::class, 'show'])->name('jobs.show');
+Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
+```
+
+This means:
+
+```txt
+Guests can browse jobs.
+Guests can view job details.
+Guests can view company pages.
+Authentication is only required for dashboard, employer, applicant, and admin management routes.
+```
+
+---
+
+## 🧭 Dashboard vs Public Job Board
+
+Phase 6 creates a clear separation between dashboard pages and public pages.
+
+### Public Side
+
+```txt
+/jobs
+/jobs/{slug}
+/companies/{company}
+```
+
+Used for:
+
+```txt
+Public job browsing
+Job details
+Company profile pages
+Login/register CTA
+```
+
+### Dashboard Side
+
+```txt
+/dashboard
+/employer/jobs
+/employer/profile
+/applicant/profile
+/admin/users
+/admin/roles
+/admin/permissions
+```
+
+Used for:
+
+```txt
+Authenticated user dashboard
+Employer job management
+Profile management
+Admin management
+```
+
+When a logged-in user clicks **Browse Jobs** from the dashboard sidebar, they are intentionally taken to the public job board page.
+
+This is expected behavior because `/jobs` is now the public job browsing experience.
+
+---
+
+## 🧠 Controller Updates
+
+### JobBoardController
+
+The `JobBoardController` now powers the polished public job board.
+
+```txt
 app/Http/Controllers/JobBoardController.php
+```
+
+It handles:
+
+- Public job listing
+- Search
+- Filters
+- Public job details
+- Job board statistics
+- Related jobs
+
+### CompanyController
+
+A new controller was added:
+
+```txt
+app/Http/Controllers/CompanyController.php
+```
+
+It handles:
+
+- Public company profile page
+- Open jobs by company
+
+---
+
+## 📁 Files Added in Phase 6
+
+### Layout
+
+```txt
+resources/views/layouts/public.blade.php
+```
+
+### CSS
+
+```txt
+public/assets/css/public.css
+```
+
+### Controller
+
+```txt
+app/Http/Controllers/CompanyController.php
 ```
 
 ### Views
 
 ```txt
-resources/views/employer/jobs/index.blade.php
-resources/views/employer/jobs/create.blade.php
-resources/views/employer/jobs/edit.blade.php
-resources/views/employer/jobs/_form.blade.php
+resources/views/companies/show.blade.php
+```
 
+---
+
+## 📝 Files Updated in Phase 6
+
+```txt
+app/Http/Controllers/JobBoardController.php
+routes/web.php
 resources/views/jobs/index.blade.php
 resources/views/jobs/show.blade.php
-```
-
-### Migration
-
-```txt
-database/migrations/xxxx_xx_xx_xxxxxx_create_job_posts_table.php
-```
-
----
-
-## 📝 Files Updated in Phase 5
-
-```txt
-app/Models/User.php
-app/Http/Controllers/DashboardController.php
-routes/web.php
 resources/views/partials/sidebar.blade.php
-resources/views/dashboard/index.blade.php
-public/assets/css/app.css
 ```
 
 ---
 
-## 🧪 Testing Phase 5
-
-Run migrations:
-
-```bash
-php artisan migrate
-```
+## 🧪 Testing Phase 6
 
 Clear cache:
 
 ```bash
 php artisan optimize:clear
+php artisan route:clear
+php artisan view:clear
 ```
 
-Check job routes:
+Check public job routes:
 
 ```bash
 php artisan route:list | grep jobs
 ```
 
-Expected job routes:
+Check company routes:
+
+```bash
+php artisan route:list | grep companies
+```
+
+Expected public routes:
 
 ```txt
-GET|HEAD   jobs
-GET|HEAD   jobs/{job}
-GET|HEAD   employer/jobs
-POST       employer/jobs
-GET|HEAD   employer/jobs/create
-GET|HEAD   employer/jobs/{job}/edit
-PUT|PATCH  employer/jobs/{job}
-DELETE     employer/jobs/{job}
-PATCH      employer/jobs/{job}/publish
-PATCH      employer/jobs/{job}/unpublish
-PATCH      employer/jobs/{job}/close
+GET|HEAD  jobs
+GET|HEAD  jobs/{job}
+GET|HEAD  companies/{company}
 ```
 
 ---
 
 ## ✅ Manual Testing Checklist
 
-### Employer Test
+### Guest Test
 
-Login with:
-
-```txt
-Email: employer@hiredesk.test
-Password: password
-```
-
-Test:
+Open these URLs without logging in:
 
 ```txt
-/employer/jobs
-/employer/jobs/create
-```
-
-Create a job post:
-
-```txt
-Title: Senior Laravel Developer
-Company: Remote Tech Inc.
-Location: Remote
-Workplace Type: Remote
-Job Type: Full-time
-Salary Currency: USD
-Salary Min: 3000
-Salary Max: 5000
-Skills Required: Laravel, PHP, MySQL, REST API
-Status: Published
-Application Deadline: Leave empty or choose a future date
-Description: We are hiring a Laravel developer for a remote SaaS project.
+/
+ /jobs
+/jobs/{job-slug}
+/companies/{company-slug}
 ```
 
 Expected result:
 
 ```txt
-Employer can create a job.
-Employer is redirected to /employer/jobs after creating a job.
-Employer can edit the job.
-Employer is redirected to /employer/jobs after updating a job.
-Employer can publish/unpublish the job.
-Employer can close the job.
-Employer can delete the job.
-Employer can see applications count placeholder.
+Guest can browse published jobs.
+Guest can view job details.
+Guest can view company profile pages.
+Guest sees Login to Apply button.
+Guest does not see AdminLTE dashboard sidebar/topbar on public pages.
 ```
 
 ### Applicant Test
@@ -613,14 +544,36 @@ Test:
 Expected result:
 
 ```txt
-Applicant can browse published jobs.
-Applicant can search jobs.
-Applicant can filter jobs.
+Applicant can browse public jobs.
 Applicant can view job details.
-Applicant cannot access employer job management routes.
-Draft jobs are not visible.
-Closed jobs are not visible.
-Expired jobs are not visible.
+Applicant sees Apply Now button placeholder.
+Applicant can return to dashboard from public navbar.
+```
+
+### Employer Test
+
+Login with:
+
+```txt
+Email: employer@hiredesk.test
+Password: password
+```
+
+Test:
+
+```txt
+/employer/jobs
+/jobs
+/jobs/{job-slug}
+```
+
+Expected result:
+
+```txt
+Employer can manage jobs from /employer/jobs.
+Employer can preview the public job board from /jobs.
+Employer sees dashboard navigation on public pages.
+Employer does not see applicant apply workflow.
 ```
 
 ### Admin Test
@@ -636,83 +589,78 @@ Test:
 
 ```txt
 /dashboard
+/jobs
+/admin/users
 ```
 
 Expected result:
 
 ```txt
-Admin dashboard shows total jobs, published jobs, draft jobs, and closed jobs.
+Admin can access dashboard/admin pages.
+Admin can browse public jobs.
+Admin can return to dashboard from the public navbar.
 ```
 
 ---
 
 ## 🧰 Useful Commands
 
-Create model and migration:
+Create company controller:
 
 ```bash
-php artisan make:model JobPost -m
+php artisan make:controller CompanyController
 ```
 
-Create controllers:
+Create company view folder:
 
 ```bash
-php artisan make:controller Employer/JobPostController
-php artisan make:controller JobBoardController
+mkdir -p resources/views/companies
 ```
 
-Run migrations:
-
-```bash
-php artisan migrate
-```
-
-Clear cache:
+Clear Laravel cache:
 
 ```bash
 php artisan optimize:clear
+php artisan route:clear
+php artisan view:clear
 ```
 
-Check job routes:
+Check routes:
+
+```bash
+php artisan route:list
+```
+
+Check public job routes:
 
 ```bash
 php artisan route:list | grep jobs
 ```
 
----
+Check company routes:
 
-## ✅ Phase 5 Status
-
-Phase 5 is completed with:
-
-- Job post database structure
-- Employer job management
-- Published job board listing
-- Search and filtering
-- Job details page
-- Role-based job access
-- Employer-only job CRUD
-- Publish/unpublish/close workflow
-- Dashboard job stats
-- AdminLTE-compatible job UI
+```bash
+php artisan route:list | grep companies
+```
 
 ---
 
-## 🔜 Next Phase
+## ✅ Phase 6 Status
 
-### Phase 6 — Public Job Board UI
+Phase 6 is completed with:
 
-Planned features:
-
-- Public homepage
-- Public job listing page
+- Public job board layout
+- Polished public job listing page
 - Public job details page
-- Better job cards
-- SEO-friendly job browsing
-- Guest users can browse jobs
-- Applicants can apply after login
-- Public navigation/header
-- Job portal landing page
+- Public company profile page
+- Guest job browsing
+- Search and filters
+- Job cards
+- Company logo placeholders
+- Badges
+- Pagination
+- Public apply button placeholder
+- Dashboard/public UI separation
 
 ---
 

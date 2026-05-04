@@ -38,7 +38,13 @@ class JobBoardController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('jobs.index', compact('jobs'));
+        $stats = [
+            'published_jobs' => JobPost::published()->count(),
+            'remote_jobs' => JobPost::published()->where('workplace_type', 'remote')->count(),
+            'companies' => JobPost::published()->distinct('company_name')->count('company_name'),
+        ];
+
+        return view('jobs.index', compact('jobs', 'stats'));
     }
 
     public function show(JobPost $job): View
@@ -51,6 +57,18 @@ class JobBoardController extends Controller
 
         $job->load('employer.employerProfile');
 
-        return view('jobs.show', compact('job'));
+        $relatedJobs = JobPost::query()
+            ->published()
+            ->where('id', '!=', $job->id)
+            ->where(function ($query) use ($job) {
+                $query->where('company_name', $job->company_name)
+                    ->orWhere('job_type', $job->job_type)
+                    ->orWhere('workplace_type', $job->workplace_type);
+            })
+            ->latest('published_at')
+            ->limit(3)
+            ->get();
+
+        return view('jobs.show', compact('job', 'relatedJobs'));
     }
 }
