@@ -1,5 +1,4 @@
 <nav class="main-header navbar navbar-expand navbar-white navbar-light">
-    <!-- Left navbar links -->
     <ul class="navbar-nav">
         <li class="nav-item">
             <a class="nav-link" data-widget="pushmenu" href="#" role="button">
@@ -16,19 +15,25 @@
         </li>
     </ul>
 
-    <!-- Right navbar links -->
     <ul class="navbar-nav ml-auto">
         <li class="nav-item">
-            <a class="nav-link" href="#" title="Notifications">
-                <i class="far fa-bell"></i>
-            </a>
+            <span class="nav-link">
+                <i class="far fa-user-circle"></i>
+                <span class="ml-1 d-none d-md-inline">
+                    {{ auth()->user()->name ?? 'User' }}
+                </span>
+            </span>
         </li>
 
         <li class="nav-item">
-            <a class="nav-link" href="#" title="User">
-                <i class="far fa-user-circle"></i>
-                <span class="ml-1 d-none d-md-inline">Admin User</span>
-            </a>
+            <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                @csrf
+
+                <button type="submit" class="btn btn-link nav-link text-danger">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="ml-1 d-none d-md-inline">Logout</span>
+                </button>
+            </form>
         </li>
     </ul>
 </nav>

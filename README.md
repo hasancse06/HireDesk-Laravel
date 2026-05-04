@@ -48,23 +48,209 @@ This makes the project useful for learning, client work, open-source collaborati
 
 ## 🧩 Current Phase
 
-### ✅ Phase 1 — Laravel + AdminLTE Starter
+---
 
-The current version includes the first foundation phase of the project.
+## 🔐 Phase 2 — Authentication System
 
-### Completed Features
+Phase 2 adds a complete custom authentication system to HireDesk Laravel using Laravel's built-in session authentication features with an AdminLTE-compatible Blade UI.
 
-- Fresh Laravel 12 project setup
-- AdminLTE 3.2.0 manual integration
+This phase intentionally avoids Laravel Breeze, Tailwind, and Vite so the project remains lightweight, classic Blade-based, and easy to customize for AdminLTE dashboard projects.
+
+### ✅ Completed Features
+
+- Login page
+- Login with remember me option
+- Registration page
+- Register as Applicant or Employer
+- Logout functionality
+- Forgot password page
+- Password reset form
+- Password reset token support
+- Protected dashboard route
+- Guest-only auth routes
+- Authenticated navbar user display
+- Authenticated sidebar user display
+- Session-based authentication
+- Role column added to users table
+- Clean custom auth controllers
+- AdminLTE-styled auth pages
+
+---
+
+## 🧭 Authentication Routes
+
+The following authentication routes are available:
+
+| Method | URL | Name | Description |
+|---|---|---|---|
+| GET | `/login` | `login` | Show login page |
+| POST | `/login` | `login.store` | Process login request |
+| GET | `/register` | `register` | Show registration page |
+| POST | `/register` | `register.store` | Process registration request |
+| POST | `/logout` | `logout` | Log out authenticated user |
+| GET | `/forgot-password` | `password.request` | Show forgot password page |
+| POST | `/forgot-password` | `password.email` | Send password reset link |
+| GET | `/reset-password/{token}` | `password.reset` | Show reset password form |
+| POST | `/reset-password` | `password.update` | Update user password |
+| GET | `/dashboard` | `dashboard` | Protected dashboard page |
+
+---
+
+## 👤 Supported Registration Roles
+
+During registration, users can choose one of the following account types:
+
+| Role | Description |
+|---|---|
+| Applicant | Can browse jobs and apply to job posts in future phases |
+| Employer | Can post jobs and review applications in future phases |
+
+A simple `role` column has been added to the `users` table for Phase 2.
+
+In Phase 3, this role system will be extended into a more advanced role and permission management system.
+
+---
+
+## 🗄️ Database Changes
+
+Phase 2 adds the following field to the `users` table:
+
+```txt
+role
+```
+
+Default value:
+
+```txt
+applicant
+```
+
+Example user roles:
+
+```txt
+admin
+employer
+applicant
+```
+
+Laravel's default `password_reset_tokens` table is used for password reset functionality.
+
+---
+
+## 📁 Files Added in Phase 2
+
+### Controllers
+
+```txt
+app/Http/Controllers/Auth/LoginController.php
+app/Http/Controllers/Auth/RegisterController.php
+app/Http/Controllers/Auth/ForgotPasswordController.php
+app/Http/Controllers/Auth/ResetPasswordController.php
+```
+
+### Views
+
+```txt
+resources/views/layouts/auth.blade.php
+resources/views/auth/login.blade.php
+resources/views/auth/register.blade.php
+resources/views/auth/passwords/email.blade.php
+resources/views/auth/passwords/reset.blade.php
+```
+
+### Updated Files
+
+```txt
+app/Models/User.php
+routes/web.php
+resources/views/partials/navbar.blade.php
+resources/views/partials/sidebar.blade.php
+resources/views/dashboard/index.blade.php
+```
+
+### Migration
+
+```txt
+database/migrations/xxxx_xx_xx_xxxxxx_add_role_to_users_table.php
+```
+
+---
+
+## 🧪 Testing Phase 2
+
+You can test the authentication system using these URLs:
+
+```txt
+/register
+/login
+/dashboard
+/logout
+/forgot-password
+```
+
+Recommended test flow:
+
+1. Register as an Applicant
+2. Logout
+3. Register as an Employer
+4. Logout again
+5. Login with one of the created users
+6. Confirm dashboard access is protected
+7. Test the forgot password page
+
+---
+
+## 📧 Password Reset Testing
+
+The project currently uses the `log` mail driver for local development.
+
+```env
+MAIL_MAILER=log
+```
+
+When requesting a password reset link, Laravel writes the email content into the log file instead of sending a real email.
+
+To view the reset password email locally:
+
+```bash
+tail -n 100 storage/logs/laravel.log
+```
+
+Copy the reset link from the log and open it in your browser to test the password reset flow.
+
+---
+
+## 🧱 Why Custom Authentication?
+
+HireDesk Laravel uses custom authentication instead of Laravel Breeze because this project is designed around:
+
+- AdminLTE 3.2.0
+- Blade templates
 - No Vite dependency
-- Reusable Blade layout
-- Admin sidebar
-- Top navbar
-- Footer partial
-- Dashboard page
-- Public asset structure
-- Custom CSS and JS files
-- Clean starter dashboard for future job board modules
+- Classic Laravel dashboard development
+- Simple public asset structure
+- Easy customization for job portal projects
+
+This keeps the project lightweight and easier to adapt for traditional Laravel admin panels, shared hosting deployments, and open-source job board development.
+
+---
+
+## ✅ Phase 2 Status
+
+Phase 2 is completed with:
+
+- Custom Laravel login
+- Custom Laravel registration
+- Remember me support
+- Logout
+- Password reset flow
+- Session-based authentication
+- Protected dashboard
+- Employer/applicant registration role
+- AdminLTE-styled auth UI
+
+---
+
 
 ---
 

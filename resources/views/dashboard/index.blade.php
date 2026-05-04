@@ -6,7 +6,10 @@
     <div class="row mb-2">
         <div class="col-sm-6">
             <h1>Dashboard</h1>
-            <p class="text-muted mb-0">Welcome to HireDesk Laravel job board starter.</p>
+            <p class="text-muted mb-0">
+                Welcome back, {{ auth()->user()->name }}. You are logged in as
+                <strong class="text-capitalize">{{ str_replace('_', ' ', auth()->user()->role) }}</strong>.
+            </p>
         </div>
 
         <div class="col-sm-6">

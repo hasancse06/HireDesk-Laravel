@@ -20,7 +20,13 @@
             </div>
 
             <div class="info">
-                <a href="#" class="d-block">Admin User</a>
+                <a href="#" class="d-block">
+                    {{ auth()->user()->name ?? 'User' }}
+                </a>
+
+                <small class="text-muted text-capitalize">
+                    {{ str_replace('_', ' ', auth()->user()->role ?? 'guest') }}
+                </small>
             </div>
         </div>
 
