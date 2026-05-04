@@ -9,6 +9,10 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+use App\Mail\ApplicationStatusUpdatedMail;
+use Illuminate\Support\Facades\Mail;
+use App\Notifications\ApplicationStatusUpdatedNotification;
+
 class ApplicationController extends Controller
 {
     public function index(Request $request): View
@@ -51,7 +55,7 @@ class ApplicationController extends Controller
 
     public function updateStatus(Request $request, JobApplication $application): RedirectResponse
     {
-        $application->load('jobPost');
+        $application->load(['jobPost', 'applicant']);
 
         $this->authorizeEmployerJob($application->jobPost);
 
@@ -59,11 +63,24 @@ class ApplicationController extends Controller
             'status' => ['required', 'in:pending,shortlisted,selected,rejected'],
         ]);
 
+        $oldStatus = $application->status;
+
         $application->update([
             'status' => $validated['status'],
             'reviewed_at' => now(),
             'reviewed_by' => auth()->id(),
         ]);
+
+        $application->refresh()->load(['jobPost', 'applicant']);
+
+        if ($oldStatus !== $validated['status'] && in_array($validated['status'], ['shortlisted', 'selected', 'rejected'], true)) {
+            Mail::to($application->applicant->email)
+                ->queue(new ApplicationStatusUpdatedMail($application));
+
+            $application->applicant->notify(
+                new ApplicationStatusUpdatedNotification($application)
+            );
+        }
 
         return redirect()
             ->route('employer.applications.show', $application)
@@ -87,7 +104,7 @@ class ApplicationController extends Controller
 
     private function changeStatus(JobApplication $application, string $status, string $message): RedirectResponse
     {
-        $application->load('jobPost');
+        $application->load(['jobPost', 'applicant']);
 
         $this->authorizeEmployerJob($application->jobPost);
 
@@ -96,11 +113,24 @@ class ApplicationController extends Controller
             422
         );
 
+        $oldStatus = $application->status;
+
         $application->update([
             'status' => $status,
             'reviewed_at' => now(),
             'reviewed_by' => auth()->id(),
         ]);
+
+        $application->refresh()->load(['jobPost', 'applicant']);
+
+        if ($oldStatus !== $status && in_array($status, ['shortlisted', 'selected', 'rejected'], true)) {
+            Mail::to($application->applicant->email)
+                ->queue(new ApplicationStatusUpdatedMail($application));
+
+            $application->applicant->notify(
+                new ApplicationStatusUpdatedNotification($application)
+            );
+        }
 
         return redirect()
             ->route('employer.applications.show', $application)

@@ -16,6 +16,7 @@ use App\Http\Controllers\Employer\ApplicationController as EmployerApplicationCo
 use App\Http\Controllers\Employer\JobPostController as EmployerJobPostController;
 use App\Http\Controllers\Employer\ProfileController as EmployerProfileController;
 use App\Http\Controllers\JobBoardController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -30,7 +31,9 @@ Route::get('/', function () {
 
 Route::get('/jobs', [JobBoardController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job:slug}', [JobBoardController::class, 'show'])->name('jobs.show');
-Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
+
+Route::get('/companies/{company}', [CompanyController::class, 'show'])
+    ->name('companies.show');
 
 /*
 |--------------------------------------------------------------------------
@@ -45,11 +48,17 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
     Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
 
-    Route::get('/forgot-password', [ForgotPasswordController::class, 'create'])->name('password.request');
-    Route::post('/forgot-password', [ForgotPasswordController::class, 'store'])->name('password.email');
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'create'])
+        ->name('password.request');
 
-    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'create'])->name('password.reset');
-    Route::post('/reset-password', [ResetPasswordController::class, 'store'])->name('password.update');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'store'])
+        ->name('password.email');
+
+    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'create'])
+        ->name('password.reset');
+
+    Route::post('/reset-password', [ResetPasswordController::class, 'store'])
+        ->name('password.update');
 });
 
 /*
@@ -61,7 +70,27 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
-    Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+    /*
+    |--------------------------------------------------------------------------
+    | Logout
+    |--------------------------------------------------------------------------
+    |
+    | POST logout is the recommended method.
+    | GET logout is also allowed here to avoid 404 if a normal link points to /logout.
+    |
+    */
+
+    Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
+        ->name('logout');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Notifications
+    |--------------------------------------------------------------------------
+    */
+
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])
+        ->name('notifications.read');
 
     /*
     |--------------------------------------------------------------------------

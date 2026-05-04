@@ -50,251 +50,328 @@ This makes the project useful for learning, client work, open-source collaborati
 
 ---
 
-## 🧑‍💼 Phase 8 — Employer Application Review
+## 📬 Phase 9 — Applicant Dashboard + Email Notification
 
-Phase 8 improves the employer-side application review workflow.
+Phase 9 adds applicant-facing status tracking and automated application status notifications.
 
-Employers can now see stronger application statistics on their dashboard, navigate from job posts to applications, open detailed applicant profiles, and quickly shortlist, select, or reject applicants. This phase also strengthens authorization by ensuring employers can only view and manage applications submitted to their own job posts.
+Applicants can now clearly track the jobs they applied to, see application status updates, view selected/rejected results, and receive email notifications when an employer updates their application status. This phase demonstrates real workflow automation using Laravel Mailables, queues, and optional database notifications.
 
 ---
 
 ## ✅ Completed Features
 
-- Employer dashboard application statistics
-- Total jobs count
-- Published jobs count
-- Total applications count
-- Pending applications count
-- Selected applicants count
-- Rejected applicants count
-- Improved `My Jobs → Applications → Applicant Details` flow
-- Better employer applications by job page
-- Better employer applicant details page
-- Applicant name and email display
-- Applicant resume link
-- Applicant cover letter display
-- Applicant skills display
-- Applicant portfolio link display
-- Applicant GitHub link display
-- Applicant LinkedIn link display
-- Application status badge
-- Shortlist button
-- Select Applicant button
-- Reject Application button
-- Manual status update form
-- Strong employer authorization checks
+- Applicant application dashboard improved
+- Applicants can see jobs applied to
+- Applicants can see application status
+- Applicants can see selected/rejected status clearly
+- Applicants can see application date
+- Applicants can see reviewed date
+- Applicants can see employer/company name
+- Applicants can view detailed application status messages
+- Email notification when employer shortlists an applicant
+- Email notification when employer selects an applicant
+- Email notification when employer rejects an applicant
+- Laravel Mailable added
+- Queue-ready email workflow
+- Database notification support added
+- Notification read controller added
+- Application status email tested with Laravel log mail driver
+- Queue worker tested successfully
 
 ---
 
-## 🎯 Purpose of Phase 8
+## 🎯 Purpose of Phase 9
 
-The goal of this phase is to make the employer review experience more practical and realistic.
-
-Employers should be able to:
+The goal of this phase is to show a complete hiring workflow:
 
 ```txt
-Open dashboard
-See application stats
-Go to My Jobs
-Click application count
-View applicants for a job
-Open applicant details
-Review resume, cover letter, skills, and portfolio
-Shortlist, select, or reject the applicant
+Applicant applies to a job
+Employer reviews the application
+Employer shortlists/selects/rejects the applicant
+Application status updates
+Applicant sees updated status in dashboard
+Applicant receives email notification
+Database notification is created
 ```
 
-This phase demonstrates real Laravel authorization and business workflow handling.
+This is a strong portfolio feature because it demonstrates:
+
+```txt
+Laravel Mailables
+Laravel queues
+Database notifications
+Role-based workflow
+Status-driven automation
+Applicant dashboard UX
+Real-world business logic
+```
 
 ---
 
-## 📊 Employer Dashboard Stats
+## 👨‍💻 Applicant Dashboard Improvements
 
-The employer dashboard now shows:
+The applicant dashboard/application page now shows:
 
 ```txt
-Total Jobs
-Published Jobs
-Total Applications
+Jobs applied to
+Application status
+Selected/rejected status
+Application date
+Reviewed date
+Employer/company name
+Job title
+Job type
+Workplace type
+```
+
+Applicant application page:
+
+```txt
+/applicant/applications
+```
+
+Applicant application details page:
+
+```txt
+/applicant/applications/{application}
+```
+
+---
+
+## 📊 Applicant Application Status Cards
+
+The applicant application dashboard includes status cards for:
+
+```txt
+Jobs Applied To
 Pending Applications
-Selected Applicants
-Rejected Applicants
+Selected Applications
+Rejected Applications
 ```
 
-These stats are calculated only from the logged-in employer’s own jobs.
-
-Example logic:
-
-```php
-$applicationQuery = JobApplication::whereHas('jobPost', function ($query) use ($user) {
-    $query->where('user_id', $user->id);
-});
-```
-
-Then each stat is counted from the employer-owned application query:
-
-```php
-'applications' => (clone $applicationQuery)->count(),
-'pending_applications' => (clone $applicationQuery)->where('status', 'pending')->count(),
-'selected_applications' => (clone $applicationQuery)->where('status', 'selected')->count(),
-'rejected_applications' => (clone $applicationQuery)->where('status', 'rejected')->count(),
-```
+This gives applicants a clear overview of their application progress.
 
 ---
 
-## 🧭 Employer Review Flow
+## 🏷️ Application Status Display
 
-Phase 8 improves the employer review journey.
-
-### Main Flow
-
-```txt
-/employer/jobs
-        ↓
-Click application count
-        ↓
-/employer/jobs/{job}/applications
-        ↓
-Click Applicant Details
-        ↓
-/employer/applications/{application}
-        ↓
-Shortlist / Select / Reject
-```
-
-This creates a clear, real-world hiring workflow.
-
----
-
-## 🧾 Employer Applications by Job
-
-The page:
-
-```txt
-/employer/jobs/{job}/applications
-```
-
-shows applications for a specific job post.
-
-It includes:
-
-- Job title
-- Company name
-- Workplace type
-- Job type
-- Salary range
-- Application deadline
-- Total applications count
-- Applicant name
-- Applicant email
-- Applicant skills
-- Application status
-- Expected salary
-- Applied date
-- Applicant Details button
-
-This page is only accessible by the employer who owns the job.
-
----
-
-## 👤 Employer Applicant Details Page
-
-The page:
-
-```txt
-/employer/applications/{application}
-```
-
-shows a detailed review screen for an applicant.
-
-It includes:
-
-| Section | Details |
-|---|---|
-| Applicant Information | Name, email, headline |
-| Professional Profile | Experience level, location, skills, bio |
-| Application Details | Expected salary, availability date |
-| Links | Resume, portfolio, GitHub, LinkedIn |
-| Cover Letter | Full applicant cover letter |
-| Status Panel | Current status, applied date, reviewed date |
-| Quick Actions | Shortlist, Select, Reject |
-| Job Details | Job title, company, type, workplace, public job link |
-
----
-
-## 🏷️ Application Review Actions
-
-Employers can update application status using quick action buttons.
-
-### Shortlist Applicant
-
-```txt
-PATCH /employer/applications/{application}/shortlist
-```
-
-Route name:
-
-```txt
-employer.applications.shortlist
-```
-
-### Select Applicant
-
-```txt
-PATCH /employer/applications/{application}/select
-```
-
-Route name:
-
-```txt
-employer.applications.select
-```
-
-### Reject Application
-
-```txt
-PATCH /employer/applications/{application}/reject
-```
-
-Route name:
-
-```txt
-employer.applications.reject
-```
-
-### Manual Status Update
-
-```txt
-PATCH /employer/applications/{application}/status
-```
-
-Route name:
-
-```txt
-employer.applications.status
-```
-
----
-
-## 🏷️ Application Statuses
-
-Phase 8 continues using the existing application statuses:
+Applications can have these statuses:
 
 | Status | Meaning |
 |---|---|
 | `pending` | Application submitted but not reviewed yet |
-| `shortlisted` | Employer marked the applicant as a possible fit |
+| `shortlisted` | Employer shortlisted the applicant |
 | `selected` | Employer selected the applicant |
 | `rejected` | Employer rejected the application |
 
+Applicant-facing messages:
+
+```txt
+Selected → Congratulations message
+Rejected → Not selected message
+Shortlisted → Shortlisted message
+Pending → Awaiting review
+```
+
 ---
 
-## 🔐 Employer Authorization
+## 📧 Email Notification Workflow
 
-Phase 8 strengthens employer authorization.
+When an employer updates an application status to:
 
-Employers can only view or update applications for jobs they own.
+```txt
+shortlisted
+selected
+rejected
+```
 
-Authorization logic:
+the applicant receives an email notification.
+
+Example selected email message:
+
+```txt
+Congratulations, you have been selected for the Laravel Developer position at Example Company.
+```
+
+The email includes:
+
+```txt
+Applicant name
+Job title
+Company name
+Application status
+Application date
+View Application button
+```
+
+---
+
+## ✉️ Laravel Mailable
+
+Phase 9 adds a queue-ready Mailable:
+
+```txt
+app/Mail/ApplicationStatusUpdatedMail.php
+```
+
+The email view is:
+
+```txt
+resources/views/emails/applications/status-updated.blade.php
+```
+
+The Mailable implements `ShouldQueue`, so emails can be processed by Laravel queue workers.
+
+```php
+class ApplicationStatusUpdatedMail extends Mailable implements ShouldQueue
+{
+    use Queueable, SerializesModels;
+}
+```
+
+---
+
+## 📨 Email Template
+
+The email template uses Laravel Markdown mail components.
+
+```txt
+resources/views/emails/applications/status-updated.blade.php
+```
+
+It supports different messages based on application status:
+
+```php
+@if ($application->status === 'selected')
+Congratulations, you have been selected for the **{{ $job->title }}** position at **{{ $job->company_name }}**.
+@elseif ($application->status === 'rejected')
+Thank you for applying for the **{{ $job->title }}** position at **{{ $job->company_name }}**. After reviewing your application, the employer has decided not to move forward with your application at this time.
+@elseif ($application->status === 'shortlisted')
+Good news! Your application for the **{{ $job->title }}** position at **{{ $job->company_name }}** has been shortlisted.
+@else
+Your application for the **{{ $job->title }}** position at **{{ $job->company_name }}** is currently pending review.
+@endif
+```
+
+---
+
+## 🔔 Database Notifications
+
+Phase 9 also adds optional database notification support.
+
+Notification table migration:
+
+```bash
+php artisan notifications:table
+php artisan migrate
+```
+
+Notification class:
+
+```txt
+app/Notifications/ApplicationStatusUpdatedNotification.php
+```
+
+The notification stores:
+
+```txt
+application_id
+job_post_id
+job_title
+company_name
+status
+message
+url
+```
+
+This allows applicants to see unread application notifications inside the dashboard.
+
+---
+
+## 🔁 Queue Workflow
+
+Application status emails and database notifications are queue-ready.
+
+Recommended local `.env` settings:
+
+```env
+QUEUE_CONNECTION=database
+MAIL_MAILER=log
+```
+
+Process queued jobs locally:
+
+```bash
+php artisan queue:work --stop-when-empty
+```
+
+Because `MAIL_MAILER=log` is used locally, email output appears in:
+
+```txt
+storage/logs/laravel.log
+```
+
+Check email output:
+
+```bash
+tail -n 100 storage/logs/laravel.log
+```
+
+---
+
+## ✅ Queue Test Result
+
+Phase 9 was tested successfully with Laravel queue worker.
+
+Example queue output:
+
+```txt
+App\Mail\ApplicationStatusUpdatedMail ................................ DONE
+App\Notifications\ApplicationStatusUpdatedNotification ............... DONE
+```
+
+The log email correctly generated a selected applicant notification:
+
+```txt
+Congratulations, you have been selected for the Senior Ionic Angular Developer position at QuixDevs Limited.
+```
+
+---
+
+## 🧠 Employer Application Status Automation
+
+When an employer updates an application status, the system:
+
+```txt
+Checks employer owns the job
+Updates application status
+Sets reviewed_at
+Sets reviewed_by
+Queues email notification
+Creates database notification
+Redirects back with success message
+```
+
+Example logic:
+
+```php
+if ($oldStatus !== $status && in_array($status, ['shortlisted', 'selected', 'rejected'], true)) {
+    Mail::to($application->applicant->email)
+        ->queue(new ApplicationStatusUpdatedMail($application));
+
+    $application->applicant->notify(
+        new ApplicationStatusUpdatedNotification($application)
+    );
+}
+```
+
+---
+
+## 🔐 Authorization Still Enforced
+
+Phase 9 keeps employer authorization from Phase 8.
+
+Employers can only update applications for their own jobs.
 
 ```php
 private function authorizeEmployerJob(JobPost $job): void
@@ -303,167 +380,125 @@ private function authorizeEmployerJob(JobPost $job): void
 }
 ```
 
-This check is applied before:
-
-```txt
-Viewing applications by job
-Viewing applicant details
-Updating application status
-Shortlisting applicant
-Selecting applicant
-Rejecting applicant
-```
-
 Expected behavior:
 
 ```txt
-Employer can manage applications for their own jobs.
-Employer cannot access applications from another employer’s jobs.
+Employer can select/reject applicants for own jobs.
+Employer cannot update applications for another employer’s jobs.
 Unauthorized access returns 403 Forbidden.
 ```
 
 ---
 
-## 🧠 Employer Application Controller Updates
+## 🧭 Notification Read Route
 
-The employer application controller was improved with quick status actions.
+An optional notification read route was added.
+
+```txt
+POST /notifications/{notification}/read
+```
+
+Route name:
+
+```txt
+notifications.read
+```
 
 Controller:
 
 ```txt
-app/Http/Controllers/Employer/ApplicationController.php
+app/Http/Controllers/NotificationController.php
 ```
 
-### Quick Action Methods
-
-```php
-public function shortlist(JobApplication $application): RedirectResponse
-{
-    return $this->changeStatus($application, 'shortlisted', 'Applicant shortlisted successfully.');
-}
-
-public function select(JobApplication $application): RedirectResponse
-{
-    return $this->changeStatus($application, 'selected', 'Applicant selected successfully.');
-}
-
-public function reject(JobApplication $application): RedirectResponse
-{
-    return $this->changeStatus($application, 'rejected', 'Application rejected successfully.');
-}
-```
-
-### Shared Status Change Method
-
-```php
-private function changeStatus(JobApplication $application, string $status, string $message): RedirectResponse
-{
-    $application->load('jobPost');
-
-    $this->authorizeEmployerJob($application->jobPost);
-
-    abort_unless(
-        in_array($status, ['pending', 'shortlisted', 'selected', 'rejected'], true),
-        422
-    );
-
-    $application->update([
-        'status' => $status,
-        'reviewed_at' => now(),
-        'reviewed_by' => auth()->id(),
-    ]);
-
-    return redirect()
-        ->route('employer.applications.show', $application)
-        ->with('success', $message);
-}
-```
+This allows applicants to click a notification, mark it as read, and go to the related application details page.
 
 ---
 
-## 🧭 Routes Added in Phase 8
-
-Phase 8 adds quick employer application review routes.
+## 🧭 Routes Added in Phase 9
 
 | Method | URL | Name | Description |
 |---|---|---|---|
-| PATCH | `/employer/applications/{application}/shortlist` | `employer.applications.shortlist` | Shortlist an applicant |
-| PATCH | `/employer/applications/{application}/select` | `employer.applications.select` | Select an applicant |
-| PATCH | `/employer/applications/{application}/reject` | `employer.applications.reject` | Reject an application |
+| POST | `/notifications/{notification}/read` | `notifications.read` | Mark notification as read and redirect |
 
-Existing employer application routes:
+Existing application status routes now trigger email/database notifications:
 
-| Method | URL | Name | Description |
-|---|---|---|---|
-| GET | `/employer/applications` | `employer.applications.index` | List applications for employer’s jobs |
-| GET | `/employer/applications/{application}` | `employer.applications.show` | View applicant details |
-| PATCH | `/employer/applications/{application}/status` | `employer.applications.status` | Manual status update |
-| GET | `/employer/jobs/{job}/applications` | `employer.jobs.applications` | View applications for a specific job |
+| Method | URL | Name |
+|---|---|---|
+| PATCH | `/employer/applications/{application}/shortlist` | `employer.applications.shortlist` |
+| PATCH | `/employer/applications/{application}/select` | `employer.applications.select` |
+| PATCH | `/employer/applications/{application}/reject` | `employer.applications.reject` |
+| PATCH | `/employer/applications/{application}/status` | `employer.applications.status` |
 
 ---
 
-## 🧩 Dashboard Updates
+## 📁 Files Added in Phase 9
 
-The dashboard view now includes employer-specific application review cards.
-
-For employer users, the dashboard shows:
+### Mail
 
 ```txt
-Pending Applications
-Selected Applicants
-Rejected Applicants
+app/Mail/ApplicationStatusUpdatedMail.php
 ```
 
-Each card links to filtered employer applications:
+### Email View
 
 ```txt
-/employer/applications?status=pending
-/employer/applications?status=selected
-/employer/applications?status=rejected
+resources/views/emails/applications/status-updated.blade.php
 ```
 
----
-
-## 🧾 My Jobs Application Count
-
-The employer job list now makes the application count clickable.
-
-Location:
+### Notification
 
 ```txt
-/employer/jobs
+app/Notifications/ApplicationStatusUpdatedNotification.php
 ```
 
-Application count button links to:
+### Controller
 
 ```txt
-/employer/jobs/{job}/applications
+app/Http/Controllers/NotificationController.php
 ```
 
-This makes the review flow simple:
+### Migration
 
 ```txt
-My Jobs → Applications → Applicant Details
+database/migrations/xxxx_xx_xx_xxxxxx_create_notifications_table.php
 ```
 
 ---
 
-## 📁 Files Updated in Phase 8
+## 📝 Files Updated in Phase 9
 
 ```txt
-app/Http/Controllers/DashboardController.php
 app/Http/Controllers/Employer/ApplicationController.php
+resources/views/applicant/applications/index.blade.php
+resources/views/applicant/applications/show.blade.php
 routes/web.php
-resources/views/dashboard/index.blade.php
-resources/views/employer/jobs/index.blade.php
-resources/views/employer/applications/index.blade.php
-resources/views/employer/applications/by-job.blade.php
-resources/views/employer/applications/show.blade.php
+.env
+```
+
+Recommended `.env` update:
+
+```env
+APP_NAME="HireDesk Laravel"
+QUEUE_CONNECTION=database
+MAIL_MAILER=log
+```
+
+After changing `.env`, clear config cache:
+
+```bash
+php artisan config:clear
+php artisan optimize:clear
 ```
 
 ---
 
-## 🧪 Testing Phase 8
+## 🧪 Testing Phase 9
+
+Run migrations:
+
+```bash
+php artisan migrate
+```
 
 Clear cache:
 
@@ -473,29 +508,51 @@ php artisan route:clear
 php artisan view:clear
 ```
 
-Check application routes:
+Process queued emails and notifications:
 
 ```bash
-php artisan route:list | grep applications
+php artisan queue:work --stop-when-empty
 ```
 
-Expected employer routes:
+Check logged email output:
 
-```txt
-GET|HEAD  employer/applications
-GET|HEAD  employer/applications/{application}
-PATCH     employer/applications/{application}/status
-PATCH     employer/applications/{application}/shortlist
-PATCH     employer/applications/{application}/select
-PATCH     employer/applications/{application}/reject
-GET|HEAD  employer/jobs/{job}/applications
+```bash
+tail -n 100 storage/logs/laravel.log
 ```
 
 ---
 
 ## ✅ Manual Testing Checklist
 
-### Employer Dashboard Test
+### Applicant Dashboard Test
+
+Login with:
+
+```txt
+Email: applicant@hiredesk.test
+Password: password
+```
+
+Open:
+
+```txt
+/applicant/applications
+```
+
+Expected result:
+
+```txt
+Applicant sees jobs applied to.
+Applicant sees company name.
+Applicant sees application date.
+Applicant sees application status.
+Applicant sees selected/rejected status clearly.
+Applicant sees unread database notification if status was updated.
+```
+
+---
+
+### Employer Select Applicant Test
 
 Login with:
 
@@ -507,108 +564,141 @@ Password: password
 Open:
 
 ```txt
-/dashboard
+/employer/applications/{application}
 ```
 
-Expected result:
+Click:
 
 ```txt
-Employer sees total jobs.
-Employer sees published jobs.
-Employer sees total applications.
-Employer sees pending applications.
-Employer sees selected applicants.
-Employer sees rejected applicants.
-```
-
----
-
-### Employer Review Flow Test
-
-Open:
-
-```txt
-/employer/jobs
-```
-
-Click the application count button.
-
-Expected flow:
-
-```txt
-My Jobs
-→ Applications for selected job
-→ Applicant Details
-```
-
-On applicant details page, confirm these are visible:
-
-```txt
-Applicant name
-Applicant email
-Resume link
-Cover letter
-Skills
-Portfolio link
-GitHub link
-LinkedIn link
-Application status
-Shortlist button
-Select Applicant button
-Reject Application button
-Manual status update form
-```
-
----
-
-### Status Action Test
-
-From the applicant details page, test:
-
-```txt
-Shortlist
 Select Applicant
-Reject Application
-Manual status update
 ```
 
 Expected result:
 
 ```txt
-Application status updates correctly.
+Application status changes to selected.
 reviewed_at is updated.
 reviewed_by is updated.
+Email notification is queued.
+Database notification is created.
 Success message is shown.
-Employer stays on the applicant details page.
 ```
 
----
+Then run:
 
-### Authorization Test
+```bash
+php artisan queue:work --stop-when-empty
+```
 
-Expected authorization behavior:
+Expected queue result:
 
 ```txt
-Employer can access applications for their own jobs.
-Employer cannot access applications for another employer’s jobs.
-Unauthorized access returns 403 Forbidden.
+ApplicationStatusUpdatedMail DONE
+ApplicationStatusUpdatedNotification DONE
 ```
 
 ---
 
-## ✅ Phase 8 Status
+### Email Log Test
 
-Phase 8 is completed with:
+Because local mail driver is set to `log`, check:
 
-- Employer dashboard review statistics
-- Improved employer job-to-application flow
-- Improved applications by job page
-- Improved applicant details page
-- Resume, cover letter, skills, portfolio, GitHub, and LinkedIn visibility
-- Quick shortlist/select/reject actions
-- Manual status update
-- Strong employer authorization
-- AdminLTE-compatible review UI
+```bash
+tail -n 100 storage/logs/laravel.log
+```
+
+Expected email content:
+
+```txt
+Congratulations, you have been selected for the Laravel Developer position at Example Company.
+```
+
+---
+
+### Applicant Status Confirmation Test
+
+Login again as the applicant and open:
+
+```txt
+/applicant/applications
+/applicant/applications/{application}
+```
+
+Expected result:
+
+```txt
+Selected application shows congratulations message.
+Rejected application shows not selected message.
+Shortlisted application shows shortlisted message.
+Pending application shows normal pending status.
+```
+
+---
+
+## 🧰 Useful Commands
+
+Create Mailable:
+
+```bash
+php artisan make:mail ApplicationStatusUpdatedMail --markdown=emails.applications.status-updated
+```
+
+Create notification table:
+
+```bash
+php artisan notifications:table
+php artisan migrate
+```
+
+Create notification:
+
+```bash
+php artisan make:notification ApplicationStatusUpdatedNotification
+```
+
+Create notification controller:
+
+```bash
+php artisan make:controller NotificationController
+```
+
+Run queue worker:
+
+```bash
+php artisan queue:work --stop-when-empty
+```
+
+Check logs:
+
+```bash
+tail -n 100 storage/logs/laravel.log
+```
+
+Clear cache:
+
+```bash
+php artisan optimize:clear
+php artisan route:clear
+php artisan view:clear
+```
+
+---
+
+## ✅ Phase 9 Status
+
+Phase 9 is completed with:
+
+- Applicant application status dashboard
+- Jobs applied to overview
+- Selected/rejected status visibility
+- Application date and reviewed date display
+- Company/employer name display
+- Queue-ready Laravel Mailable
+- Email notification on shortlist/select/reject
+- Database notification support
+- Notification read route
+- Real workflow automation
+- Local log-mail testing completed successfully
 
 ---
 
