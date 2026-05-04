@@ -7,8 +7,10 @@
         <div class="col-sm-6">
             <h1>Dashboard</h1>
             <p class="text-muted mb-0">
-                Welcome back, {{ auth()->user()->name }}. You are logged in as
-                <strong class="text-capitalize">{{ str_replace('_', ' ', auth()->user()->role) }}</strong>.
+                Welcome back, {{ auth()->user()->name }}. You are viewing the
+                <strong class="text-capitalize">{{ $dashboardType ?? 'default' }}</strong>
+                dashboard as
+                <strong class="text-capitalize">{{ str_replace('_', ' ', auth()->user()->primaryRoleName()) }}</strong>.
             </p>
         </div>
 

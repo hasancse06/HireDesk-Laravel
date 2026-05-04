@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -26,8 +29,39 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
-        return view('dashboard.index');
+        $user = auth()->user();
+
+        if ($user->hasAnyRole(['super_admin', 'admin'])) {
+            return view('dashboard.index', [
+                'dashboardType' => 'admin',
+            ]);
+        }
+
+        if ($user->hasRole('employer')) {
+            return view('dashboard.index', [
+                'dashboardType' => 'employer',
+            ]);
+        }
+
+        return view('dashboard.index', [
+            'dashboardType' => 'applicant',
+        ]);
     })->name('dashboard');
 
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+
+    Route::prefix('admin')
+        ->name('admin.')
+        ->middleware('role:super_admin|admin')
+        ->group(function () {
+            Route::resource('users', UserController::class)->only([
+                'index',
+                'edit',
+                'update',
+                'destroy',
+            ]);
+
+            Route::resource('roles', RoleController::class);
+            Route::resource('permissions', PermissionController::class);
+        });
 });

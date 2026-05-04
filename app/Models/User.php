@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     protected $fillable = [
         'name',
@@ -31,18 +31,28 @@ class User extends Authenticatable
         ];
     }
 
+    public function primaryRoleName(): string
+    {
+        return $this->roles()->first()?->name ?? $this->role ?? 'applicant';
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('super_admin');
+    }
+
     public function isAdmin(): bool
     {
-        return in_array($this->role, ['admin', 'super_admin'], true);
+        return $this->hasAnyRole(['super_admin', 'admin']);
     }
 
     public function isEmployer(): bool
     {
-        return $this->role === 'employer';
+        return $this->hasRole('employer') || $this->role === 'employer';
     }
 
     public function isApplicant(): bool
     {
-        return $this->role === 'applicant';
+        return $this->hasRole('applicant') || $this->role === 'applicant';
     }
 }

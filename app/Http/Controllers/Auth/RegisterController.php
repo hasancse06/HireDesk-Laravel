@@ -28,6 +28,8 @@ class RegisterController extends Controller
 
         $user = User::create($validated);
 
+        $user->assignRole($validated['role']);
+
         Auth::login($user);
 
         $request->session()->regenerate();

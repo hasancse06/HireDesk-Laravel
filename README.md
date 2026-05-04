@@ -50,207 +50,463 @@ This makes the project useful for learning, client work, open-source collaborati
 
 ---
 
-## 🔐 Phase 2 — Authentication System
+## 🛡️ Phase 3 — Role and Permission Management
 
-Phase 2 adds a complete custom authentication system to HireDesk Laravel using Laravel's built-in session authentication features with an AdminLTE-compatible Blade UI.
+Phase 3 adds a professional role and permission management system to HireDesk Laravel using **Spatie Laravel Permission**.
 
-This phase intentionally avoids Laravel Breeze, Tailwind, and Vite so the project remains lightweight, classic Blade-based, and easy to customize for AdminLTE dashboard projects.
-
-### ✅ Completed Features
-
-- Login page
-- Login with remember me option
-- Registration page
-- Register as Applicant or Employer
-- Logout functionality
-- Forgot password page
-- Password reset form
-- Password reset token support
-- Protected dashboard route
-- Guest-only auth routes
-- Authenticated navbar user display
-- Authenticated sidebar user display
-- Session-based authentication
-- Role column added to users table
-- Clean custom auth controllers
-- AdminLTE-styled auth pages
+This phase introduces role-based access control, permission-based feature planning, admin user management, role management, permission management, and protected admin routes. It prepares the project for future employer/applicant workflows, job posting permissions, application review permissions, and admin-level platform control.
 
 ---
 
-## 🧭 Authentication Routes
+## ✅ Completed Features
 
-The following authentication routes are available:
-
-| Method | URL | Name | Description |
-|---|---|---|---|
-| GET | `/login` | `login` | Show login page |
-| POST | `/login` | `login.store` | Process login request |
-| GET | `/register` | `register` | Show registration page |
-| POST | `/register` | `register.store` | Process registration request |
-| POST | `/logout` | `logout` | Log out authenticated user |
-| GET | `/forgot-password` | `password.request` | Show forgot password page |
-| POST | `/forgot-password` | `password.email` | Send password reset link |
-| GET | `/reset-password/{token}` | `password.reset` | Show reset password form |
-| POST | `/reset-password` | `password.update` | Update user password |
-| GET | `/dashboard` | `dashboard` | Protected dashboard page |
+- Spatie Laravel Permission integration
+- Role management
+- Permission management
+- Assign roles to users
+- Admin user management
+- Role-based dashboard access
+- Role-protected admin routes
+- Role-based sidebar menu visibility
+- AdminLTE user management UI
+- AdminLTE role management UI
+- AdminLTE permission management UI
+- Demo users seeded with roles
+- Demo permissions seeded
+- Permission cache reset support
+- User model updated with `HasRoles`
+- Registration now assigns Spatie roles automatically
 
 ---
 
-## 👤 Supported Registration Roles
+## 📦 Package Used
 
-During registration, users can choose one of the following account types:
+This phase uses:
+
+```txt
+spatie/laravel-permission
+```
+
+Install command:
+
+```bash
+composer require spatie/laravel-permission
+```
+
+Publish package config and migrations:
+
+```bash
+php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
+```
+
+Run migrations:
+
+```bash
+php artisan migrate
+```
+
+Reset permission cache:
+
+```bash
+php artisan permission:cache-reset
+```
+
+---
+
+## 👥 System Roles
+
+The following roles are created by default:
 
 | Role | Description |
 |---|---|
-| Applicant | Can browse jobs and apply to job posts in future phases |
-| Employer | Can post jobs and review applications in future phases |
-
-A simple `role` column has been added to the `users` table for Phase 2.
-
-In Phase 3, this role system will be extended into a more advanced role and permission management system.
+| `super_admin` | Full access to all platform features |
+| `admin` | Can manage users, roles, permissions, jobs, and applications |
+| `employer` | Can access employer dashboard and manage jobs/applications in future phases |
+| `applicant` | Can access applicant dashboard and apply to jobs in future phases |
 
 ---
 
-## 🗄️ Database Changes
+## 🔑 System Permissions
 
-Phase 2 adds the following field to the `users` table:
+The following permissions are seeded by default:
+
+| Permission | Description |
+|---|---|
+| `manage_users` | Allows managing platform users |
+| `manage_roles` | Allows managing user roles |
+| `manage_permissions` | Allows managing permissions |
+| `view_admin_dashboard` | Allows access to admin dashboard features |
+| `view_employer_dashboard` | Allows access to employer dashboard features |
+| `view_applicant_dashboard` | Allows access to applicant dashboard features |
+| `manage_jobs` | Allows managing job posts |
+| `manage_applications` | Allows managing job applications |
+
+---
+
+## 👤 Demo Users
+
+Phase 3 includes seeded demo users for testing role-based access.
+
+| Role | Email | Password |
+|---|---|---|
+| Super Admin | `admin@hiredesk.test` | `password` |
+| Employer | `employer@hiredesk.test` | `password` |
+| Applicant | `applicant@hiredesk.test` | `password` |
+
+---
+
+## 🧭 Admin Routes
+
+Admin routes are protected by role middleware.
+
+Only users with the following roles can access admin management routes:
 
 ```txt
-role
-```
-
-Default value:
-
-```txt
-applicant
-```
-
-Example user roles:
-
-```txt
+super_admin
 admin
-employer
-applicant
 ```
 
-Laravel's default `password_reset_tokens` table is used for password reset functionality.
+### Available Admin Routes
+
+| Method | URL | Description |
+|---|---|---|
+| GET | `/admin/users` | List users |
+| GET | `/admin/users/{user}/edit` | Edit user and assigned role |
+| PUT/PATCH | `/admin/users/{user}` | Update user and role |
+| DELETE | `/admin/users/{user}` | Delete user |
+| GET | `/admin/roles` | List roles |
+| GET | `/admin/roles/create` | Create role form |
+| POST | `/admin/roles` | Store new role |
+| GET | `/admin/roles/{role}/edit` | Edit role and permissions |
+| PUT/PATCH | `/admin/roles/{role}` | Update role and permissions |
+| DELETE | `/admin/roles/{role}` | Delete role |
+| GET | `/admin/permissions` | List permissions |
+| GET | `/admin/permissions/create` | Create permission form |
+| POST | `/admin/permissions` | Store new permission |
+| GET | `/admin/permissions/{permission}/edit` | Edit permission |
+| PUT/PATCH | `/admin/permissions/{permission}` | Update permission |
+| DELETE | `/admin/permissions/{permission}` | Delete permission |
 
 ---
 
-## 📁 Files Added in Phase 2
+## 🧱 Middleware
+
+Spatie middleware aliases are registered in:
+
+```txt
+bootstrap/app.php
+```
+
+Middleware aliases:
+
+```php
+'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+```
+
+Example route protection:
+
+```php
+Route::prefix('admin')
+    ->name('admin.')
+    ->middleware('role:super_admin|admin')
+    ->group(function () {
+        Route::resource('users', UserController::class)->only([
+            'index',
+            'edit',
+            'update',
+            'destroy',
+        ]);
+
+        Route::resource('roles', RoleController::class);
+        Route::resource('permissions', PermissionController::class);
+    });
+```
+
+---
+
+## 🧩 User Model Role Support
+
+The `User` model now uses Spatie's `HasRoles` trait:
+
+```php
+use Spatie\Permission\Traits\HasRoles;
+```
+
+```php
+class User extends Authenticatable
+{
+    use HasFactory, Notifiable, HasRoles;
+}
+```
+
+Helper methods were added for cleaner role checks:
+
+```php
+public function primaryRoleName(): string
+{
+    return $this->roles()->first()?->name ?? $this->role ?? 'applicant';
+}
+
+public function isSuperAdmin(): bool
+{
+    return $this->hasRole('super_admin');
+}
+
+public function isAdmin(): bool
+{
+    return $this->hasAnyRole(['super_admin', 'admin']);
+}
+
+public function isEmployer(): bool
+{
+    return $this->hasRole('employer') || $this->role === 'employer';
+}
+
+public function isApplicant(): bool
+{
+    return $this->hasRole('applicant') || $this->role === 'applicant';
+}
+```
+
+---
+
+## 📝 Registration Role Assignment
+
+When a new user registers as an `employer` or `applicant`, the selected role is now assigned through Spatie Permission.
+
+Example:
+
+```php
+$user = User::create($validated);
+
+$user->assignRole($validated['role']);
+```
+
+This keeps the simple `role` column and Spatie role system aligned during registration.
+
+---
+
+## 📁 Files Added in Phase 3
 
 ### Controllers
 
 ```txt
-app/Http/Controllers/Auth/LoginController.php
-app/Http/Controllers/Auth/RegisterController.php
-app/Http/Controllers/Auth/ForgotPasswordController.php
-app/Http/Controllers/Auth/ResetPasswordController.php
+app/Http/Controllers/Admin/UserController.php
+app/Http/Controllers/Admin/RoleController.php
+app/Http/Controllers/Admin/PermissionController.php
+```
+
+### Seeders
+
+```txt
+database/seeders/RolePermissionSeeder.php
 ```
 
 ### Views
 
 ```txt
-resources/views/layouts/auth.blade.php
-resources/views/auth/login.blade.php
-resources/views/auth/register.blade.php
-resources/views/auth/passwords/email.blade.php
-resources/views/auth/passwords/reset.blade.php
+resources/views/admin/users/index.blade.php
+resources/views/admin/users/edit.blade.php
+
+resources/views/admin/roles/index.blade.php
+resources/views/admin/roles/create.blade.php
+resources/views/admin/roles/edit.blade.php
+
+resources/views/admin/permissions/index.blade.php
+resources/views/admin/permissions/create.blade.php
+resources/views/admin/permissions/edit.blade.php
+
+resources/views/partials/alerts.blade.php
 ```
 
 ### Updated Files
 
 ```txt
 app/Models/User.php
+app/Http/Controllers/Auth/RegisterController.php
+bootstrap/app.php
+database/seeders/DatabaseSeeder.php
 routes/web.php
-resources/views/partials/navbar.blade.php
+resources/views/layouts/admin.blade.php
 resources/views/partials/sidebar.blade.php
 resources/views/dashboard/index.blade.php
 ```
 
-### Migration
+---
+
+## 🗄️ Database Tables Added by Spatie
+
+Spatie Laravel Permission adds the following tables:
 
 ```txt
-database/migrations/xxxx_xx_xx_xxxxxx_add_role_to_users_table.php
+permissions
+roles
+model_has_permissions
+model_has_roles
+role_has_permissions
 ```
+
+These tables power the role and permission management system.
 
 ---
 
-## 🧪 Testing Phase 2
+## 🧪 Testing Phase 3
 
-You can test the authentication system using these URLs:
+After running migrations and seeders, test using the seeded users.
+
+### Super Admin Test
+
+Login with:
 
 ```txt
-/register
-/login
+Email: admin@hiredesk.test
+Password: password
+```
+
+Confirm access to:
+
+```txt
 /dashboard
-/logout
-/forgot-password
+/admin/users
+/admin/roles
+/admin/permissions
 ```
 
-Recommended test flow:
+Expected result:
 
-1. Register as an Applicant
-2. Logout
-3. Register as an Employer
-4. Logout again
-5. Login with one of the created users
-6. Confirm dashboard access is protected
-7. Test the forgot password page
+```txt
+Super Admin can access all admin management pages.
+```
+
+### Employer Test
+
+Login with:
+
+```txt
+Email: employer@hiredesk.test
+Password: password
+```
+
+Confirm access to:
+
+```txt
+/dashboard
+```
+
+Confirm restricted access to:
+
+```txt
+/admin/users
+/admin/roles
+/admin/permissions
+```
+
+Expected result:
+
+```txt
+Employer can access dashboard but cannot access admin management pages.
+```
+
+### Applicant Test
+
+Login with:
+
+```txt
+Email: applicant@hiredesk.test
+Password: password
+```
+
+Confirm access to:
+
+```txt
+/dashboard
+```
+
+Confirm restricted access to:
+
+```txt
+/admin/users
+/admin/roles
+/admin/permissions
+```
+
+Expected result:
+
+```txt
+Applicant can access dashboard but cannot access admin management pages.
+```
 
 ---
 
-## 📧 Password Reset Testing
+## 🧰 Useful Commands
 
-The project currently uses the `log` mail driver for local development.
-
-```env
-MAIL_MAILER=log
-```
-
-When requesting a password reset link, Laravel writes the email content into the log file instead of sending a real email.
-
-To view the reset password email locally:
+Install Spatie Laravel Permission:
 
 ```bash
-tail -n 100 storage/logs/laravel.log
+composer require spatie/laravel-permission
 ```
 
-Copy the reset link from the log and open it in your browser to test the password reset flow.
+Publish Spatie config and migrations:
+
+```bash
+php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
+```
+
+Run migrations:
+
+```bash
+php artisan migrate
+```
+
+Run role and permission seeder:
+
+```bash
+php artisan db:seed --class=RolePermissionSeeder
+```
+
+Reset permission cache:
+
+```bash
+php artisan permission:cache-reset
+```
+
+Clear Laravel cache:
+
+```bash
+php artisan optimize:clear
+```
+
+Check routes:
+
+```bash
+php artisan route:list
+```
+
+Check admin routes only:
+
+```bash
+php artisan route:list | grep admin
+```
 
 ---
 
-## 🧱 Why Custom Authentication?
+## ✅ Phase 3 Status
 
-HireDesk Laravel uses custom authentication instead of Laravel Breeze because this project is designed around:
+Phase 3 is completed with:
 
-- AdminLTE 3.2.0
-- Blade templates
-- No Vite dependency
-- Classic Laravel dashboard development
-- Simple public asset structure
-- Easy customization for job portal projects
-
-This keeps the project lightweight and easier to adapt for traditional Laravel admin panels, shared hosting deployments, and open-source job board development.
-
----
-
-## ✅ Phase 2 Status
-
-Phase 2 is completed with:
-
-- Custom Laravel login
-- Custom Laravel registration
-- Remember me support
-- Logout
-- Password reset flow
-- Session-based authentication
-- Protected dashboard
-- Employer/applicant registration role
-- AdminLTE-styled auth UI
+- Role-based access control
+- Permission-based structure
+- Admin user management
+- Role CRUD
+- Permission CRUD
+- Spatie Laravel Permission integration
+- Role-protected admin routes
+- Role-aware dashboard access
+- AdminLTE-compatible management screens
 
 ---
-
 
 ---
 
