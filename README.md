@@ -188,3 +188,66 @@ If you find this useful:
 - ⭐ Star the repository on GitHub
 - 🔗 Share it with fellow Laravel, Ionic + Angular, WordPress, WooCommerce and Mobile App Developers
 - 💡 Contribute with feedback or pull requests
+
+
+## Screenshots
+
+### Login
+
+![Login](screenshots/1-Login-HireDesk-Laravel.png)
+
+### Register
+
+![Register](screenshots/2-Register-HireDesk-Laravel.png)
+
+### Browse Jobs
+
+![Browse Jobs](screenshots/3-Browse-Jobs-HireDesk-Laravel.png)
+
+### Employer Dashboard
+
+![Employer Dashboard](screenshots/4-Employer-Dashboard-HireDesk-Laravel.png)
+
+### Applicant Dashboard
+
+![Applicant Dashboard](screenshots/5-Applicant-Dashboard-HireDesk-Laravel.png)
+
+### Employer - My Jobs
+
+![Employer My Jobs](screenshots/6-Employer-My-Jobs-HireDesk-Laravel.png)
+
+### Employer - Applications
+
+![Employer Applications](screenshots/7-Employer-Applications-HireDesk-Laravel.png)
+
+### Employer - Applicant Details
+
+![Employer Applicant Details](screenshots/8-Employer-Applicant-Details-HireDesk-Laravel.png)
+
+### Applicant Profile
+
+![Applicant Profile](screenshots/9-Applicant-Profile-HireDesk-Laravel.png)
+
+### Applicant - My Applications
+
+![Applicant My Applications](screenshots/10-Applicant-My-Applications-HireDesk-Laravel.png)
+
+### Applicant - Application Details
+
+![Applicant Application Details](screenshots/11-Applicant-Application-Details-HireDesk-Laravel.png)
+
+### Super Admin - Users
+
+![Super Admin Users](screenshots/12-SA-Users-HireDesk-Laravel.png)
+
+### Super Admin - Roles
+
+![Super Admin Roles](screenshots/13-SA-Roles-HireDesk-Laravel.png)
+
+### Super Admin - Edit Role
+
+![Super Admin Edit Role](screenshots/14-SA-Edit-Role-HireDesk-Laravel.png)
+
+### Super Admin - Permissions
+
+![Super Admin Permissions](screenshots/15-SA-Permissions-HireDesk-Laravel.png)
