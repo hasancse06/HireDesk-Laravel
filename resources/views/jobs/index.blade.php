@@ -24,6 +24,7 @@
 <div class="public-container">
     <div class="row">
         <div class="col-lg-12">
+
             <div class="card card-primary card-outline">
                 <div class="card-header">
                     <h3 class="card-title">
@@ -38,19 +39,19 @@
                             <div class="col-md-4">
                                 <label>Search</label>
                                 <input type="text"
-                                    name="search"
-                                    value="{{ request('search') }}"
-                                    class="form-control"
-                                    placeholder="Job title, company, skill...">
+                                       name="search"
+                                       value="{{ request('search') }}"
+                                       class="form-control"
+                                       placeholder="Job title, company, skill...">
                             </div>
 
                             <div class="col-md-3">
                                 <label>Location</label>
                                 <input type="text"
-                                    name="location"
-                                    value="{{ request('location') }}"
-                                    class="form-control"
-                                    placeholder="Remote, London, Dhaka...">
+                                       name="location"
+                                       value="{{ request('location') }}"
+                                       class="form-control"
+                                       placeholder="Remote, London, Dhaka...">
                             </div>
 
                             <div class="col-md-2">
@@ -90,74 +91,75 @@
             </div>
 
             @forelse ($jobs as $job)
-            <div class="card job-card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start flex-wrap">
-                        <div>
-                            <h4 class="mb-1">
-                                <a href="{{ route('jobs.show', $job) }}">
-                                    {{ $job->title }}
-                                </a>
-                            </h4>
+                <div class="card job-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap">
+                            <div>
+                                <h4 class="mb-1">
+                                    <a href="{{ route('jobs.show', $job) }}">
+                                        {{ $job->title }}
+                                    </a>
+                                </h4>
 
-                            <p class="text-muted mb-2">
-                                <i class="fas fa-building mr-1"></i>
-                                {{ $job->company_name }}
+                                <p class="text-muted mb-2">
+                                    <i class="fas fa-building mr-1"></i>
+                                    {{ $job->company_name }}
 
-                                <span class="mx-2">•</span>
+                                    <span class="mx-2">•</span>
 
-                                <i class="fas fa-map-marker-alt mr-1"></i>
-                                {{ $job->location ?? 'Remote' }}
-                            </p>
+                                    <i class="fas fa-map-marker-alt mr-1"></i>
+                                    {{ $job->location ?? 'Remote' }}
+                                </p>
 
-                            <div class="mb-2">
-                                <span class="badge badge-info">
-                                    {{ $job->workplaceTypeLabel() }}
-                                </span>
+                                <div class="mb-2">
+                                    <span class="badge badge-info">
+                                        {{ $job->workplaceTypeLabel() }}
+                                    </span>
 
-                                <span class="badge badge-primary">
-                                    {{ $job->jobTypeLabel() }}
-                                </span>
+                                    <span class="badge badge-primary">
+                                        {{ $job->jobTypeLabel() }}
+                                    </span>
 
-                                <span class="badge badge-success">
-                                    {{ $job->salaryRange() }}
-                                </span>
+                                    <span class="badge badge-success">
+                                        {{ $job->salaryRange() }}
+                                    </span>
+                                </div>
+
+                                @if ($job->skills_required)
+                                    <p class="mb-2">
+                                        <strong>Skills:</strong>
+                                        {{ $job->skills_required }}
+                                    </p>
+                                @endif
+
+                                <p class="text-muted mb-0">
+                                    Deadline: {{ $job->deadlineLabel() }}
+                                </p>
                             </div>
 
-                            @if ($job->skills_required)
-                                <p class="mb-2">
-                                    <strong>Skills:</strong>
-                                    {{ $job->skills_required }}
-                                </p>
-                            @endif
-
-                            <p class="text-muted mb-0">
-                                Deadline: {{ $job->deadlineLabel() }}
-                            </p>
-                        </div>
-
-                        <div class="mt-3 mt-md-0">
-                            <a href="{{ route('jobs.show', $job) }}" class="btn btn-primary">
-                                View Details
-                            </a>
+                            <div class="mt-3 mt-md-0">
+                                <a href="{{ route('jobs.show', $job) }}" class="btn btn-primary">
+                                    View Details
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            @empty
+                <div class="card">
+                    <div class="card-body text-center text-muted">
+                        No published jobs found.
+                    </div>
+                </div>
+            @endforelse
+
+            @if ($jobs->hasPages())
+                <div class="d-flex justify-content-center mt-4">
+                    {{ $jobs->links() }}
+                </div>
+            @endif
+
         </div>
     </div>
 </div>
-@empty
-        <div class="card">
-            <div class="card-body text-center text-muted">
-                No published jobs found.
-            </div>
-        </div>
-    @endforelse
-
-    @if ($jobs->hasPages())
-        <div class="mt-3">
-            {{ $jobs->links() }}
-        </div>
-    @endif
 @endsection

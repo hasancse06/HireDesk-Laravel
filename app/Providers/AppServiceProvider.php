@@ -6,6 +6,7 @@ use App\Models\JobApplication;
 use App\Models\JobPost;
 use App\Policies\JobApplicationPolicy;
 use App\Policies\JobPostPolicy;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -20,5 +21,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(JobPost::class, JobPostPolicy::class);
         Gate::policy(JobApplication::class, JobApplicationPolicy::class);
+
+        Paginator::useBootstrapFour();
     }
 }

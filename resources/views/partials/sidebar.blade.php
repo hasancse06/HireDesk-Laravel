@@ -158,17 +158,6 @@
                         </a>
                     </li>
                 @endrole
-
-                <li class="nav-header">SYSTEM</li>
-
-                <li class="nav-item">
-                    <a href="#"
-                       class="nav-link">
-                        <i class="nav-icon fas fa-cogs"></i>
-                        <p>Settings</p>
-                    </a>
-                </li>
-
             </ul>
         </nav>
     </div>
